@@ -1,0 +1,22 @@
+﻿<Properties StartupConfiguration="{2D0EB88E-11B5-F4FA-968E-1C3E8EC8520D}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Source Code/Control/StaticVariable.cs">
+    <Files>
+      <File FileName="Assets/Scenes/AddQuestion/GetQuestion.cs" Line="102" Column="23" />
+      <File FileName="Assets/Plugins/SimpleJSON.cs" Line="12" Column="23" />
+      <File FileName="Assets/Scenes/AllReport/ReportList.cs" Line="1" Column="1" />
+      <File FileName="Assets/Source Code/Others/DataManager.cs" Line="17" Column="12" />
+      <File FileName="Assets/Source Code/Others/Data.cs" Line="8" Column="33" />
+      <File FileName="Assets/Source Code/Boundary/LoginUI.cs" Line="1" Column="1" />
+      <File FileName="Assets/Source Code/Boundary/UI.cs" Line="105" Column="21" />
+      <File FileName="Assets/Source Code/Boundary/SceneChanger.cs" Line="17" Column="9" />
+      <File FileName="Assets/Source Code/Control/StaticVariable.cs" Line="12" Column="36" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="Unity.Editor" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

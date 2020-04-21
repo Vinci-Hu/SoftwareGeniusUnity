@@ -1,0 +1,20 @@
+﻿<Properties StartupConfiguration="{6AFB85E9-42E6-F00C-C12E-D1CD0C76B2BA}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Script/GameManagement.cs">
+    <Files>
+      <File FileName="Assets/Source Code/Control/StaticVariable.cs" Line="7" Column="14" />
+      <File FileName="Assets/Script/LevelManagement.cs" />
+      <File FileName="Assets/Script/GameEvent.cs" />
+      <File FileName="Assets/Source Code/Boundary/scencChange.cs" />
+      <File FileName="Assets/Script/GameManagement.cs" Line="261" Column="33" />
+      <File FileName="Assets/Script/UIManager.cs" />
+      <File FileName="Assets/Script/Question.cs" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="7c1d853a-a1d4-4626-b154-32c599cd4a13" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

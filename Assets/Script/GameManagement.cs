@@ -5,11 +5,15 @@ using System.Collections;
 using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using SimpleJSON;
+using UnityEngine.Networking;
+
 public class GameManagement : MonoBehaviour
 {
 
-    public Question[] _questions = null;
-    public Question[] Questions { get { return _questions; } }
+    public JSONNode newJson;
+    public Qqustion QList;
+    public int QuestionIndex = 0;
     [SerializeField] GameEvent events = null;
 
     [SerializeField] Animator timerAnimtor = null;
@@ -18,7 +22,7 @@ public class GameManagement : MonoBehaviour
     [SerializeField] Color timerAlmostOutColor = Color.red;
     private Color timerDefaultColor = Color.white;
 
-    
+
     private List<AnswerData> PickedAnswers = new List<AnswerData>();
     private List<int> FinishedQuestions = new List<int>();
     private int currentQuestion = 0;
@@ -32,11 +36,11 @@ public class GameManagement : MonoBehaviour
     {
         get
         {
-            if (events.npc_CurrentFinalScore <= 0 || events.Play_CurrentFinalScore <= 0)
+            if (events.npc_HP <= 0 || events.Play_HP <= 0)
                 return true;
             else
                 return false;
-            
+
         }
     }
 
@@ -54,29 +58,18 @@ public class GameManagement : MonoBehaviour
     {
         events.EXP = 0;
         events.CurrentFinalScore = 0;
-        events.Play_CurrentFinalScore = 100;
-        events.npc_CurrentFinalScore = 100;
+        events.Play_HP = 100;
+        events.npc_HP = 100;
         events.status = "pending";
         events.numOfQnsAnswered = 0;
-        events.idOfAnsweredQns= new List<int>();
-        events.idOfCorrectlyAnsweredQns= new List<int>();
-}
-    void Start()
-    {
-        //events.StartupHighscore = PlayerPrefs.GetInt(GameUtility.SavePrefKey);
-
-
-        timerDefaultColor = timerText.color;
-        LoadQuestions();
-
-        timerStateParaHash = Animator.StringToHash("TimerState");
-
-        var seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
-        UnityEngine.Random.InitState(seed);
-
-        Display();
+        events.idOfAnsweredQns = new List<int>();
+        events.idOfCorrectlyAnsweredQns = new List<int>();
     }
 
+    void Start()
+    {
+        StartCoroutine(PostBefore());
+    }
 
     public void UpdateAnswers(AnswerData newAnswer)
     {
@@ -119,10 +112,10 @@ public class GameManagement : MonoBehaviour
         }
         else { Debug.LogWarning("Something wrong while trying to display new Question UI Data. GameEvents.UpdateQuestionUI is null. Issue occured in GameManager.Display() method."); }
 
-        if (question.UseTimer)
-        {
-            UpdateTimer(question.UseTimer);
-        }
+
+
+        UpdateTimer(true);
+
     }
 
     public void Accept()
@@ -132,20 +125,18 @@ public class GameManagement : MonoBehaviour
         FinishedQuestions.Add(currentQuestion);
         events.numOfQnsAnswered++;
         events.idOfAnsweredQns.Add(currentQuestion);
-        if(isCorrect)
+        if (isCorrect)
         {
             events.idOfCorrectlyAnsweredQns.Add(currentQuestion);
         }
-        UpdateScore((isCorrect) ? Questions[currentQuestion].AddScore : (- Questions[currentQuestion].AddScore));
+        UpdateScore((isCorrect) ? true : false);
 
-        
-
-        var type = (IsFinished)? UIManager.ResolutionScreenType.Finish: (isCorrect) ? UIManager.ResolutionScreenType.Correct: UIManager.ResolutionScreenType.Incorrect;
+        var type = (IsFinished) ? UIManager.ResolutionScreenType.Finish : (isCorrect) ? UIManager.ResolutionScreenType.Correct : UIManager.ResolutionScreenType.Incorrect;
 
         if (events.DisplayResolutionScreen != null)
         {
             int score = 0;
-            if(isCorrect)
+            if (isCorrect)
             {
                 score = events.Player_DP;
             }
@@ -185,21 +176,21 @@ public class GameManagement : MonoBehaviour
                     StopCoroutine(IE_StartTimer);
                 }
 
-                timerAnimtor.SetInteger(timerStateParaHash, 1); 
+                timerAnimtor.SetInteger(timerStateParaHash, 1);
                 break;
         }
     }
 
     IEnumerator StartTimer()
     {
-        var totalTime = Questions[currentQuestion].Timer;
+        var totalTime = 25;
         var timeLeft = totalTime;
 
         timerText.color = timerDefaultColor;
         while (timeLeft >= 0)
         {
             timerText.text = timeLeft.ToString();
-            
+
 
             //AudioManager.Instance.PlaySound("CountdownSFX");
 
@@ -212,7 +203,7 @@ public class GameManagement : MonoBehaviour
                 timerText.color = timerAlmostOutColor;
             }
 
-            
+
             yield return new WaitForSeconds(1.0f);
             timeLeft--;
         }
@@ -238,7 +229,10 @@ public class GameManagement : MonoBehaviour
     {
         if (PickedAnswers.Count > 0)
         {
-            List<int> c = Questions[currentQuestion].GetCorrectAnswers();
+            List<int> c = new List<int>();
+            int ans = QList.ListOfQuestions[currentQuestion].answer - 1;
+            c.Add(ans);
+
             List<int> p = PickedAnswers.Select(x => x.AnswerIndex).ToList();
 
             var f = c.Except(p).ToList();
@@ -248,49 +242,32 @@ public class GameManagement : MonoBehaviour
         }
 
         return false;
-    } 
+    }
 
-    Question GetRandomQuestion()
+    QuestionLoad GetRandomQuestion()
     {
         var randomIndex = GetRandomQuestionIndex();
         currentQuestion = randomIndex;
-
-        return Questions[currentQuestion];
+        Debug.Log(QList.ListOfQuestions[currentQuestion].answer);
+        return QList.ListOfQuestions[currentQuestion];
     }
 
     int GetRandomQuestionIndex()
     {
-        var random = 0;
-        if (FinishedQuestions.Count < Questions.Length)
-        {
-            do
-            {
-                random = UnityEngine.Random.Range(0, Questions.Length);
-            } while (FinishedQuestions.Contains(random) || random == currentQuestion);
-        }
-        return random;
+        QuestionIndex++;
+        return QuestionIndex;
     }
 
-    void LoadQuestions()
+    private void UpdateScore(bool add)
     {
-        Object[] objs = Resources.LoadAll("Questions", typeof(Question));
-        _questions = new Question[objs.Length];
-        for (int i = 0; i < objs.Length; i++)
-        {
-            _questions[i] = (Question)objs[i];
-        }
-    }
 
-    private void UpdateScore(int add)
-    {
-        events.CurrentFinalScore += add;
-        if(add>0)
+        if (add)
         {
-            events.npc_CurrentFinalScore -= events.Player_DP;
+            events.npc_HP -= events.Player_DP;
         }
-        if (add < 0)
+        else
         {
-            events.Play_CurrentFinalScore -= events.NPC_DP;
+            events.Play_HP -= events.NPC_DP;
 
         }
         if (events.ScoreUpdated != null)
@@ -301,42 +278,89 @@ public class GameManagement : MonoBehaviour
 
     public void ReStart()
     {
-        saveDataAfter();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        
-        
     }
 
     public void BackToMap()
     {
-        saveDataAfter();
         SceneManager.LoadScene("mapSolo");
     }
-    public void saveDataAfter()
+
+    IEnumerator PostBefore()
     {
+        PostBeforeData BeforeData = new PostBeforeData();
+        /*BeforeData.worldId = events.WorldType;
+        BeforeData.landID = events.landID;
+        BeforeData.difficultyLevel = events.level;
+        BeforeData.mode = events.mode;
+        BeforeData.playID = events.playerId;*/
+        BeforeData.worldId = 1;
+        BeforeData.landID = 1;
+        BeforeData.difficultyLevel = 1;
+        BeforeData.mode = "battle";
+        BeforeData.playID = 1;
+
+        string json = JsonUtility.ToJson(BeforeData);
+        string url = "localhost:9090/api/combat/start";
+
+        UnityWebRequest userRequest = UnityWebRequest.Post(url, json);
+        userRequest.uploadHandler.contentType = "application/json";
+        userRequest.uploadHandler = new UploadHandlerRaw(System.Text.Encoding.UTF8.GetBytes(json));
+        userRequest.SetRequestHeader("Accept", "application/json");
+        userRequest.SetRequestHeader("Content-Type", "application/json");
+
+        //Debug.Log(json);
+
+        yield return userRequest.SendWebRequest();
+
+        if (userRequest.isNetworkError || userRequest.isHttpError)
+        {
+            Debug.LogError(userRequest.error);
+            yield break;
+        }
+        else
+        {
 
 
-        PostAfterData AfterData = new PostAfterData();
-        AfterData.characterId = events.playerId;
-        AfterData.status = events.status;
-        AfterData.numOfQnsAnswered = events.numOfQnsAnswered;
-        AfterData.idOfAnsweredQns = events.idOfAnsweredQns;
-        AfterData.idOfCorrectlyAnsweredQns = events.idOfCorrectlyAnsweredQns;
+            //Debug.Log(userRequest.downloadHandler.text);
+            JSONNode StartBattleInfo = JSON.Parse(userRequest.downloadHandler.text);
+            if (StartBattleInfo.Tag == JSONNodeType.Object)
+            {
+                foreach (KeyValuePair<string, JSONNode> kvp in (JSONObject)StartBattleInfo)
+                {
+                    newJson = kvp.Value;
 
-        string json = JsonUtility.ToJson(AfterData);
-        Debug.Log(json);
+                }
+            }
+            //Debug.Log(newJson.Count);
 
-        //File.WriteAllText(Application.dataPath + "saveFile.json",json);
+            string StartBattleString = "{\"ListOfQuestions\": " + newJson.ToString() + "}";
+            QList = JsonUtility.FromJson<Qqustion>(StartBattleString);
+            Debug.Log(QList.ListOfQuestions.Count + "load successfully");
+
+            timerDefaultColor = timerText.color;
+            //LoadQuestions();
+
+            timerStateParaHash = Animator.StringToHash("TimerState");
+
+            var seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+            UnityEngine.Random.InitState(seed);
+
+            Display();
+        }
 
     }
+
+    public class PostBeforeData
+    {
+        public int worldId;
+        public int landID;
+        public int difficultyLevel;
+        public string mode;
+        public int playID;
+
+    }
+
+
 }
 
-public class PostAfterData
-{
-    public string characterId;
-    public string status;
-    public int numOfQnsAnswered;
-    public List<int> idOfAnsweredQns;
-    public List<int> idOfCorrectlyAnsweredQns;
-
-}

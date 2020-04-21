@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using SimpleJSON;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 [Serializable()]
@@ -95,7 +97,7 @@ public class UIManager : MonoBehaviour
     private IEnumerator IE_DisplayTimedResolution = null;
 
     public object PlayHealthBar { get; private set; }
-    
+
     void OnEnable()
     {
         events.UpdateQuestionUI += UpdateQuestionUI;
@@ -110,7 +112,7 @@ public class UIManager : MonoBehaviour
         events.ScoreUpdated -= UpdateScoreUI;
     }
 
-    
+
     void Start()
     {
 
@@ -119,9 +121,9 @@ public class UIManager : MonoBehaviour
         resStateParaHash = Animator.StringToHash("ScreenState");
     }
 
-    void UpdateQuestionUI(Question question)
+    void UpdateQuestionUI(QuestionLoad question)
     {
-        uIElements.QuestionInfoTextObject.text = question.Info;
+        uIElements.QuestionInfoTextObject.text = question.problem;
         CreateAnswers(question);
     }
 
@@ -158,18 +160,18 @@ public class UIManager : MonoBehaviour
             case ResolutionScreenType.Correct:
                 uIElements.ResolutionBG.color = parameters.CorrectBGColor;
                 uIElements.ResolutionStateInfoText.text = "CORRECT!";
-                uIElements.ResolutionScoreText.text = "Monster   -" + score+ " HP";
+                uIElements.ResolutionScoreText.text = "Monster   -" + score + " HP";
                 break;
             case ResolutionScreenType.Incorrect:
                 uIElements.ResolutionBG.color = parameters.IncorrectBGColor;
                 uIElements.ResolutionStateInfoText.text = "WRONG!";
-                uIElements.ResolutionScoreText.text = "You   -" + score+ " HP";
+                uIElements.ResolutionScoreText.text = "You   -" + score + " HP";
                 break;
             case ResolutionScreenType.Finish:
                 uIElements.ResolutionBG.color = parameters.FinalBGColor;
                 uIElements.ResolutionStateInfoText.text = "";
 
-                if (events.npc_CurrentFinalScore <= 0)
+                if (events.npc_HP <= 0)
                 {
                     uIElements.WinUIElements.gameObject.SetActive(true);
                     events.status = "succeeded";
@@ -181,50 +183,132 @@ public class UIManager : MonoBehaviour
                 }
 
                 uIElements.FinishUIElements.gameObject.SetActive(true);
-                StartCoroutine(CalculateScore());
-                
+                StartCoroutine(SaveDataAfter());
+
                 break;
         }
     }
 
-    IEnumerator CalculateScore()
+    private IEnumerator CalculateScore(int exp)
     {
         var EXPadded = 0;
-        while (EXPadded < events.CurrentFinalScore)
+        while (EXPadded < exp)
         {
             EXPadded++;
-            uIElements.ResolutionScoreText.text = "Totol EXP: " + EXPadded.ToString();
+            uIElements.ResolutionScoreText.text = "EXP Added: " + EXPadded.ToString();
 
             yield return null;
         }
 
-        while (EXPadded > events.CurrentFinalScore)
+        while (EXPadded > exp)
         {
             EXPadded--;
-            uIElements.ResolutionScoreText.text = "Totol EXP: " + EXPadded.ToString();
+            uIElements.ResolutionScoreText.text = "EXP Added: " + EXPadded.ToString();
 
             yield return null;
         }
-        events.EXP = EXPadded;
+        
     }
 
-    void CreateAnswers(Question question)
+    IEnumerator SaveDataAfter()
+    {
+
+        PostAfterData AfterData = new PostAfterData();
+        /*AfterData.characterId = events.playerId;
+        AfterData.status = events.status;
+        AfterData.numOfQnsAnswered = events.numOfQnsAnswered;
+        AfterData.idOfAnsweredQns = events.idOfAnsweredQns;
+        AfterData.idOfCorrectlyAnsweredQns = events.idOfCorrectlyAnsweredQns;*/
+
+        AfterData.characterId = 1;
+        AfterData.status = "failed";
+        AfterData.numOfQnsAnswered = 5;
+        AfterData.idOfAnsweredQns = "[3,4,1,19,20]";
+        AfterData.idOfCorrectlyAnsweredQns = "[3,4,1,19]";
+        ;
+
+        string json = JsonUtility.ToJson(AfterData);
+
+
+        string url = "localhost:9090/api/combat/1/end";
+
+        UnityWebRequest userRequest = UnityWebRequest.Post(url, json);
+        userRequest.uploadHandler.contentType = "application/json";
+        userRequest.uploadHandler = new UploadHandlerRaw(System.Text.Encoding.UTF8.GetBytes(json));
+        userRequest.SetRequestHeader("Accept", "application/json");
+        userRequest.SetRequestHeader("Content-Type", "application/json");
+
+        //Debug.Log(json);
+
+        yield return userRequest.SendWebRequest();
+
+
+        if (userRequest.isNetworkError || userRequest.isHttpError)
+        {
+            Debug.LogError(userRequest.error);
+            yield break;
+        }
+        else
+        {
+            //Debug.Log("Success");
+            JSONNode StartBattleInfo = JSON.Parse(userRequest.downloadHandler.text);
+
+            string StartBattleString = StartBattleInfo.ToString();
+            GetExp e = JsonUtility.FromJson<GetExp>(StartBattleString);
+            //uIElements.ResolutionScoreText.text = "Totol EXP: " + e.addedExp;
+            StartCoroutine(CalculateScore(e.addedExp));
+        }
+
+    }
+
+    
+
+    void CreateAnswers(QuestionLoad question)
     {
         EraseAnswers();
 
         float offset = 0 - parameters.Margins;
-        for (int i = 0; i < question.Answers.Length; i++)
-        {
-            AnswerData newAnswer = (AnswerData)Instantiate(answerPrefab, uIElements.AnswersContentArea);
-            newAnswer.UpdateData(question.Answers[i].Info, i);
 
-            newAnswer.Rect.anchoredPosition = new Vector2(0, offset);
+        AnswerData newAnswer1 = (AnswerData)Instantiate(answerPrefab, uIElements.AnswersContentArea);
+        newAnswer1.UpdateData(question.choice1, 0);
 
-            offset -= (newAnswer.Rect.sizeDelta.y + parameters.Margins);
-            uIElements.AnswersContentArea.sizeDelta = new Vector2(uIElements.AnswersContentArea.sizeDelta.x, offset * -1);
+        newAnswer1.Rect.anchoredPosition = new Vector2(0, offset);
 
-            currentAnswers.Add(newAnswer);
-        }
+        offset -= (newAnswer1.Rect.sizeDelta.y + parameters.Margins);
+        uIElements.AnswersContentArea.sizeDelta = new Vector2(uIElements.AnswersContentArea.sizeDelta.x, offset * -1);
+
+        currentAnswers.Add(newAnswer1);
+
+        AnswerData newAnswer2 = (AnswerData)Instantiate(answerPrefab, uIElements.AnswersContentArea);
+        newAnswer2.UpdateData(question.choice2, 1);
+
+        newAnswer2.Rect.anchoredPosition = new Vector2(0, offset);
+
+        offset -= (newAnswer2.Rect.sizeDelta.y + parameters.Margins);
+        uIElements.AnswersContentArea.sizeDelta = new Vector2(uIElements.AnswersContentArea.sizeDelta.x, offset * -1);
+
+        currentAnswers.Add(newAnswer2);
+
+        AnswerData newAnswer3 = (AnswerData)Instantiate(answerPrefab, uIElements.AnswersContentArea);
+        newAnswer3.UpdateData(question.choice3, 2);
+
+        newAnswer3.Rect.anchoredPosition = new Vector2(0, offset);
+
+        offset -= (newAnswer3.Rect.sizeDelta.y + parameters.Margins);
+        uIElements.AnswersContentArea.sizeDelta = new Vector2(uIElements.AnswersContentArea.sizeDelta.x, offset * -1);
+
+        currentAnswers.Add(newAnswer3);
+
+        AnswerData newAnswer4 = (AnswerData)Instantiate(answerPrefab, uIElements.AnswersContentArea);
+        newAnswer4.UpdateData(question.choice4, 3);
+
+        newAnswer4.Rect.anchoredPosition = new Vector2(0, offset);
+
+        offset -= (newAnswer4.Rect.sizeDelta.y + parameters.Margins);
+        uIElements.AnswersContentArea.sizeDelta = new Vector2(uIElements.AnswersContentArea.sizeDelta.x, offset * -1);
+
+        currentAnswers.Add(newAnswer4);
+
     }
 
     void EraseAnswers()
@@ -239,11 +323,23 @@ public class UIManager : MonoBehaviour
     void UpdateScoreUI()
     {
         uIElements.ScoreText.text = "EXP: " + events.CurrentFinalScore;
-        uIElements.Player_HP.text = "HP: " + events.Play_CurrentFinalScore;
-        uIElements.Npc_HP.text = "HP: " + events.npc_CurrentFinalScore;
-
-        
-        uIElements.PlayerHealthBar.value = events.Play_CurrentFinalScore;
-        uIElements.NPCHealthBar.value = events.npc_CurrentFinalScore;
+        uIElements.Player_HP.text = "HP: " + events.Play_HP;
+        uIElements.Npc_HP.text = "HP: " + events.npc_HP;
+        uIElements.PlayerHealthBar.value = events.Play_HP;
+        uIElements.NPCHealthBar.value = events.npc_HP;
     }
+    public class PostAfterData
+    {
+        public int characterId;
+        public string status;
+        public int numOfQnsAnswered;
+        public string idOfAnsweredQns;
+        public string idOfCorrectlyAnsweredQns;
+    }
+
+    public class GetExp
+    {
+        public int addedExp;
+    }
+
 }

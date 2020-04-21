@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class GameEvent : ScriptableObject
 {
-    public delegate void UpdateQuestionUICallback(Question question);
+    public delegate void UpdateQuestionUICallback(QuestionLoad question);
     public UpdateQuestionUICallback UpdateQuestionUI;
 
     public delegate void UpdateQuestionAnswerCallback(AnswerData pickedAnswer);
@@ -27,10 +27,10 @@ public class GameEvent : ScriptableObject
 
     [HideInInspector]
 
-    public int Play_CurrentFinalScore = 100; //血量
+    public int Play_HP = 100; //血量
 
     [HideInInspector]
-    public int npc_CurrentFinalScore = 100; //血量
+    public int npc_HP = 100; //血量
 
 
     //新增
@@ -45,18 +45,18 @@ public class GameEvent : ScriptableObject
     public int npcId;
     public string status = "pending";
 
-    
+
     //由playerID和npcID获得
     public int Player_DP = 20;
     public int NPC_DP = 10;
-   
+
 
     //save
-   
+
     public int numOfQnsAnswered = 0;
     public List<int> idOfAnsweredQns;
     public List<int> idOfCorrectlyAnsweredQns;
-    
+
     public int EXP = 0;
 
 }

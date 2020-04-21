@@ -1,41 +1,12 @@
 ﻿<Properties StartupConfiguration="{9954AED2-E923-41FB-F1A7-ECE55C8B5CBB}|">
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Source Code/Control/StaticVariable.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Script/UIManager.cs">
     <Files>
-      <File FileName="Assets/Source Code/Boundary/SceneChanger.cs" Line="68" Column="6" />
-      <File FileName="Assets/Scenes/Questions/QuestionList.cs" />
-      <File FileName="Assets/Scenes/QuestionTeacher/QuestionDetail.cs" Line="107" Column="49" />
-      <File FileName="Assets/Scenes/IndiReport/IndividualReportController.cs" Line="100" Column="10" />
-      <File FileName="Assets/Source Code/Control/StaticVariable.cs" Line="12" Column="39" />
+      <File FileName="Assets/Script/UIManager.cs" Line="202" Column="1" />
     </Files>
-    <Pads>
-      <Pad Id="ProjectPad">
-        <State name="__root__">
-          <Node name="SoftwareGeniusUnity" expanded="True">
-            <Node name="Assets" expanded="True">
-              <Node name="Scenes" expanded="True">
-                <Node name="AllReport" expanded="True" />
-                <Node name="IndiReport" expanded="True" />
-                <Node name="LeaderBoard" expanded="True" />
-                <Node name="OverallReport" expanded="True" />
-                <Node name="Profile" expanded="True" />
-                <Node name="Questions" expanded="True" />
-                <Node name="QuestionTeacher" expanded="True" />
-              </Node>
-              <Node name="Source Code" expanded="True">
-                <Node name="Boundary" expanded="True" />
-                <Node name="Control" expanded="True">
-                  <Node name="StaticVariable.cs" selected="True" />
-                </Node>
-              </Node>
-            </Node>
-          </Node>
-        </State>
-      </Pad>
-    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="0b7a67d0-7eeb-480d-8ba3-8dfd91371f8e" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="c59abf9a-fa40-4730-932d-a529c379b69b" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

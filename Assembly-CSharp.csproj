@@ -92,8 +92,8 @@
     <Compile Include="Assets\Script\GameUtility.cs" />
     <Compile Include="Assets\Script\LevelManagement.cs" />
     <Compile Include="Assets\Script\MonControl.cs" />
+    <Compile Include="Assets\Script\PostData.cs" />
     <Compile Include="Assets\Script\Question.cs" />
-    <Compile Include="Assets\Script\Timer.cs" />
     <Compile Include="Assets\Script\UIManager.cs" />
     <Compile Include="Assets\Scripts\CharacCtrl.cs" />
     <Compile Include="Assets\Scripts\DataManagerMap.cs" />
@@ -177,31 +177,31 @@
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Sprite.shader" />
     <None Include="Assets\TextMesh Pro\Examples &amp; Extras\Fonts\Bangers - OFL.txt" />
     <Reference Include="Unity.Timeline.Editor">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VSCode.Editor">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro.Editor">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
     </Reference>
     <Reference Include="Unity.CollabProxy.Editor">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Rider.Editor">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AIModule">
       <HintPath>/Applications/Unity/Hub/Editor/2019.3.2f1/Unity.app/Contents/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>
@@ -375,22 +375,16 @@
       <HintPath>/Applications/Unity/Hub/Editor/2019.3.2f1/Unity.app/Contents/Managed/UnityEngine/UnityEngine.XRModule.dll</HintPath>
     </Reference>
     <Reference Include="Facebook.Unity">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Assets/FacebookSDK/Plugins/Facebook.Unity.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Assets/FacebookSDK/Plugins/Facebook.Unity.dll</HintPath>
     </Reference>
     <Reference Include="Facebook.Unity.Settings">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Assets/FacebookSDK/Plugins/Settings/Facebook.Unity.Settings.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Assets/FacebookSDK/Plugins/Settings/Facebook.Unity.Settings.dll</HintPath>
     </Reference>
     <Reference Include="Facebook.Unity.Gameroom">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Assets/FacebookSDK/Plugins/Gameroom/Facebook.Unity.Gameroom.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Assets/FacebookSDK/Plugins/Gameroom/Facebook.Unity.Gameroom.dll</HintPath>
     </Reference>
     <Reference Include="FacebookNamedPipeClient">
-      <HintPath>/Users/ewigkeit/Desktop/SoftwareGeniusUnity/Assets/FacebookSDK/Plugins/Gameroom/FacebookNamedPipeClient.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEditor.iOS.Extensions.Xcode">
-      <HintPath>/Applications/Unity/Hub/Editor/2019.3.2f1/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.Xcode.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEditor.iOS.Extensions.Common">
-      <HintPath>/Applications/Unity/Hub/Editor/2019.3.2f1/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.Common.dll</HintPath>
+      <HintPath>/Users/lili/Desktop/SoftwareGeniusUnity/Assets/FacebookSDK/Plugins/Gameroom/FacebookNamedPipeClient.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
       <HintPath>/Applications/Unity/Hub/Editor/2019.3.2f1/Unity.app/Contents/NetStandard/ref/2.0.0/netstandard.dll</HintPath>

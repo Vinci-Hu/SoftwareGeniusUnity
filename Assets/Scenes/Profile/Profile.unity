@@ -2103,9 +2103,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'HP
-
-'
+  m_Text: "No\u3002. Questions\n"
 --- !u!222 &815988199
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2126,7 +2124,7 @@ GameObject:
   - component: {fileID: 839926206}
   - component: {fileID: 839926205}
   m_Layer: 5
-  m_Name: Hp
+  m_Name: No. Questions
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3198,7 +3196,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 214.9, y: 139.07}
+  m_AnchoredPosition: {x: 235.64, y: 136.41}
   m_SizeDelta: {x: 94.29, y: 38.54}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1267052557
@@ -3226,7 +3224,7 @@ MonoBehaviour:
     m_BestFit: 0
     m_MinSize: 2
     m_MaxSize: 40
-    m_Alignment: 4
+    m_Alignment: 0
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0

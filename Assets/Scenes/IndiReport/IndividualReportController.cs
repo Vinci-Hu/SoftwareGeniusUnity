@@ -4,7 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
-
+using SimpleJSON;
+using UnityEngine.Networking;
 public class IndividualReportController : MonoBehaviour
 {
     private Transform tableContent;
@@ -15,18 +16,74 @@ public class IndividualReportController : MonoBehaviour
     private Report report;
 
     [Serializable]
-    private class Report {
-        public string studentName;
-        public string studentId;
-        public string email;
-        public int ranking;
+    private class Report
+    {
+        public string studentName; // report
+        public string studentId; //report
+        public string email; // report
+        public string ranking; // report
         public List<double> accuracy;
-        public double onlineTime;
+        public string onlineTime; // report
+
     }
 
-    private class JsonEntry
+
+    IEnumerator GetReportById(int studentId)
     {
-        public Report report;
+
+        string reportUrl = "http://localhost:9090/api/player/getReport/" + studentId.ToString();
+
+
+        // requesting report data
+        UnityWebRequest reportRequest = UnityWebRequest.Get(reportUrl);
+        yield return reportRequest.SendWebRequest();
+
+        if (reportRequest.isNetworkError || reportRequest.isHttpError)
+        {
+            Debug.Log(reportRequest.error);
+            yield break;
+        }
+        else
+        {
+            Debug.Log("Get report data successfully");
+        }
+        JSONNode reportData = JSON.Parse(reportRequest.downloadHandler.text);
+        Debug.Log(reportData);
+
+
+        report = new Report
+        {
+            studentName = reportData["real_name"],
+            studentId = reportData["userId"],
+            email = reportData["email"],
+            ranking = reportData["ranking"],
+            onlineTime = reportData["duration"],
+            accuracy = GetAccuracy(reportData)
+        };
+
+        Debug.Log(report);
+
+        SetStudent();
+        SetTable();
+        SetBarValues();
+        SetBarHeights();
+        SetValuePositions();
+        SetHeader("Rect0");
+
+    }
+
+    private List<double> GetAccuracy(JSONNode reportData)
+    {
+        List<double> accuracy = new List<double>();
+
+        accuracy.Add(reportData["overall_accuracy"] == "NaN" || reportData["overall_accuracy"] == null ? 0.0 : (double)reportData["overall_accuracy"]);
+        accuracy.Add(reportData["SE_accuracy"] == "NaN" || reportData["SE_accuracy"] == null ? 0.0 : (double)reportData["SE_accuracy"]);
+        accuracy.Add(reportData["SA_accuracy"] == "NaN" || reportData["SA_accuracy"] == null ? 0.0 : (double)reportData["SA_accuracy"]);
+        accuracy.Add(reportData["PM_accuracy"] == "NaN" || reportData["PM_accuracy"] == null ? 0.0 : (double)reportData["PM_accuracy"]);
+        accuracy.Add(reportData["QA_accuracy"] == "NaN" || reportData["QA_accuracy"] == null ? 0.0 : (double)reportData["QA_accuracy"]);
+
+        return accuracy;
+
     }
 
     private void Start()
@@ -36,52 +93,28 @@ public class IndividualReportController : MonoBehaviour
         bars = transform.Find("BarChart").Find("Bars");
         barValues = transform.Find("BarChart").Find("BarValues");
 
-        // Add test data
-        // AddTestData();
-
-        // construct object from json file
-        string jsonString = PlayerPrefs.GetString("reportDetails");
-        JsonEntry jsonEntry = JsonUtility.FromJson<JsonEntry>(jsonString);
-        Debug.Log(jsonString);
-        report = jsonEntry.report;
-
-        SetStudent();
-        SetTable();
-        SetBarValues();
-        SetBarHeights();
-        SetValuePositions();
-        SetHeader("Rect0");
-    }
-
-    public void AddTestData()
-    {
-        Report currentReport = new Report
+        if (StaticVariable.isFromReportList == true)
         {
-            studentName = "Duan Yiting",
-            studentId = "1",
-            email = "duan0040@e.ntu.edu.sg",
-            ranking = 5,
-            accuracy = new List<double>() { 0.89, 0.98, 0.77, 0.85, 0.97},
-            onlineTime = 1.85
-        };
+            StartCoroutine(GetReportById(int.Parse(StaticVariable.reportId)));
+        } else
+        {
+            StartCoroutine(GetReportById(int.Parse(StaticVariable.studentId)));
+        }
+        //StartCoroutine(GetReportById(1));
 
-        JsonEntry jsonEntry = new JsonEntry { report = currentReport };
-        string jsonString = JsonUtility.ToJson(jsonEntry);
-
-        PlayerPrefs.SetString("reportDetails", jsonString);
-        PlayerPrefs.Save();
-        Debug.Log(jsonString);
     }
 
-    private void SetTable ()
+
+
+    private void SetTable()
     {
         tableContent.Find("StudentId").GetComponent<Text>().text = report.studentId;
         tableContent.Find("Email").GetComponent<Text>().text = report.email;
-        tableContent.Find("Ranking").GetComponent<Text>().text = report.ranking.ToString();
-        tableContent.Find("OnlineTime").GetComponent<Text>().text = ((int)System.Math.Round(report.onlineTime * 100)).ToString() + "h";
+        tableContent.Find("Ranking").GetComponent<Text>().text = report.ranking;
+        tableContent.Find("OnlineTime").GetComponent<Text>().text = report.onlineTime;
     }
 
-    private void SetStudent ()
+    private void SetStudent()
     {
         student.Find("StudentName").GetComponent<Text>().text = report.studentName;
         student.Find("Initials").GetComponent<Text>().text = GetInitials();
@@ -120,16 +153,20 @@ public class IndividualReportController : MonoBehaviour
         if (choice == "Rect0" || choice == "all")
         {
             transform.Find("BarChart").Find("Header").GetComponent<Text>().text = "Overall Accuracy";
-        } else if (choice == "Rect1" || choice == "char0")
+        }
+        else if (choice == "Rect1" || choice == "char0")
         {
             transform.Find("BarChart").Find("Header").GetComponent<Text>().text = "Software Engineering World Accuracy";
-        } else if (choice == "Rect2" || choice == "char1")
+        }
+        else if (choice == "Rect2" || choice == "char1")
         {
             transform.Find("BarChart").Find("Header").GetComponent<Text>().text = "Software Architecture World Accuracy";
-        } else if (choice == "Rect3" || choice == "char2")
+        }
+        else if (choice == "Rect3" || choice == "char2")
         {
             transform.Find("BarChart").Find("Header").GetComponent<Text>().text = "Product Management World Accuracy";
-        } else if (choice == "Rect4" || choice == "char3")
+        }
+        else if (choice == "Rect4" || choice == "char3")
         {
             transform.Find("BarChart").Find("Header").GetComponent<Text>().text = "Quality Assurance World Accuracy";
         }
@@ -159,7 +196,7 @@ public class IndividualReportController : MonoBehaviour
     {
         List<Color32> colors = new List<Color32>();
         Color32 color;
-        
+
         color = new Color32(130, 190, 225, 200);
         colors.Add(color);
         color = new Color32(176, 191, 26, 200);
@@ -171,7 +208,7 @@ public class IndividualReportController : MonoBehaviour
         color = new Color32(229, 43, 80, 200);
         colors.Add(color);
 
-        return colors[Int32.Parse(report.studentId) % 5]; ;
+        return colors[int.Parse(report.studentId) % 5];
 
     }
 }

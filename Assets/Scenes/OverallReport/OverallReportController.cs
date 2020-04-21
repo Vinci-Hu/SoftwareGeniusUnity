@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.UI;
+using UnityEngine.Networking;
+using SimpleJSON;
+
 
 public class OverallReportController : MonoBehaviour
 {
     private Transform tableContent;
     private OverallReport overallReport;
+    private readonly string baseUrl = "http://localhost:9090/api/";
 
     [Serializable]
     private class OverallReport
@@ -17,57 +21,66 @@ public class OverallReportController : MonoBehaviour
         public double saAccuracy;
         public double pmAccuracy;
         public double qaAccuracy;
-        public double onlineTime;
+        public string onlineTime;
     }
 
-    private class JsonEntry
-    {
-        public OverallReport overallReport;
-    }
 
-    private void AddTestData()
+    IEnumerator GetOverallReport()
     {
-        OverallReport currentOverallReport = new OverallReport
+        string overallReportUrl = baseUrl + "player/getOverallReport";
+        UnityWebRequest overallReportRequest = UnityWebRequest.Get(overallReportUrl);
+        yield return overallReportRequest.SendWebRequest();
+
+        if (overallReportRequest.isNetworkError || overallReportRequest.isHttpError)
         {
-            overallAccuracy = 0.85,
-            sweAccuracy = 0.95,
-            saAccuracy = 0.95,
-            pmAccuracy = 0.8,
-            qaAccuracy = 0.8,
-            onlineTime = 7.6
+            Debug.Log(overallReportRequest.error);
+            yield break;
+        }
+        else
+        {
+            Debug.Log("Get overall report successfully");
+        }
+
+        JSONNode overallReportData = JSON.Parse(overallReportRequest.downloadHandler.text);
+
+        double overallAccuracy = overallReportData["overall_accuracy"] == "NaN" ? 0.0 : (double)overallReportData["overall_accuracy"];
+        double sweAccuracy = overallReportData["overall_SE_accuracy"] == "NaN" ? 0.0 : (double)overallReportData["overall_SE_accuracy"];
+        double saAccuracy = overallReportData["overall_SA_accuracy"] == "NaN" ? 0.0 : (double)overallReportData["overall_SA_accuracy"];
+        double pmAccuracy = overallReportData["overall_PM_accuracy"] == "NaN" ? 0.0 : (double)overallReportData["overall_PM_accuracy"];
+        double qaAccuracy = overallReportData["overall_QA_accuracy"] == "NaN" ? 0.0 : (double)overallReportData["overall_QA_accuracy"];
+        string onlineTime = overallReportData["total_game_time"];
+
+        overallReport = new OverallReport
+        {
+            overallAccuracy = overallAccuracy,
+            sweAccuracy = sweAccuracy,
+            saAccuracy = saAccuracy,
+            pmAccuracy = pmAccuracy,
+            qaAccuracy = qaAccuracy,
+            onlineTime = onlineTime
         };
 
-        JsonEntry jsonEntry = new JsonEntry { overallReport = currentOverallReport};
-        string jsonString = JsonUtility.ToJson(jsonEntry);
-
-        PlayerPrefs.SetString("overallReport", jsonString);
-        PlayerPrefs.Save();
-        Debug.Log(jsonString);
+        SetTable();
     }
+
+
 
     void Start()
     {
         tableContent = transform.Find("TableContent");
 
-        AddTestData();
 
-        string jsonString = PlayerPrefs.GetString("overallReport");
-        JsonEntry jsonEntry = JsonUtility.FromJson<JsonEntry>(jsonString);
-        Debug.Log(jsonString);
-        overallReport = jsonEntry.overallReport;
+        StartCoroutine(GetOverallReport());
 
+    }
+
+    void SetTable()
+    {
         tableContent.Find("overall").GetComponent<Text>().text = ((int)Math.Round(overallReport.overallAccuracy * 100)).ToString() + "%";
         tableContent.Find("swe").GetComponent<Text>().text = ((int)Math.Round(overallReport.sweAccuracy * 100)).ToString() + "%";
         tableContent.Find("sa").GetComponent<Text>().text = ((int)Math.Round(overallReport.saAccuracy * 100)).ToString() + "%";
         tableContent.Find("pm").GetComponent<Text>().text = ((int)Math.Round(overallReport.pmAccuracy * 100)).ToString() + "%";
         tableContent.Find("qa").GetComponent<Text>().text = ((int)Math.Round(overallReport.qaAccuracy * 100)).ToString() + "%";
-        tableContent.Find("onlineTime").GetComponent<Text>().text = overallReport.onlineTime.ToString() + "h";
-
-    }
-
-
-    void Update()
-    {
-        
+        tableContent.Find("onlineTime").GetComponent<Text>().text = overallReport.onlineTime;
     }
 }

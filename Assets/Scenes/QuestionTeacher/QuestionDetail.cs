@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using SimpleJSON;
+using UnityEngine.Networking;
+
 
 public class QuestionDetail : MonoBehaviour
 {
-    
+
     private Transform questionHeader;
     private Transform description;
 
@@ -24,23 +27,65 @@ public class QuestionDetail : MonoBehaviour
         public string questionId;
         public string category;
         public string questionDescription;
-        public string correctAnswer;
+        public int correctAnswer;
         public string optionA;
         public string optionB;
         public string optionC;
         public string optionD;
         public double correctRate;
+        public string level;
     }
 
-    private class JsonEntry
+
+
+    IEnumerator GetQuestionById(int qnId)
     {
-        public Question question;
+        string questionUrl = "http://localhost:9090/api/question/" + qnId.ToString();
+        UnityWebRequest questionRequest = UnityWebRequest.Get(questionUrl);
+        yield return questionRequest.SendWebRequest();
+
+        if (questionRequest.isNetworkError || questionRequest.isHttpError)
+        {
+            Debug.Log(questionRequest.error);
+            yield break;
+        }
+        else
+        {
+            Debug.Log("Get question successfully");
+        }
+
+        JSONNode questionData = JSON.Parse(questionRequest.downloadHandler.text);
+
+        string level = "";
+        if (questionData["difficultyLevel"] == 1) level = "Easy";
+        if (questionData["difficultyLevel"] == "2") level = "Medium";
+        if (questionData["difficultyLevel"] == "3") level = "Hard";
+
+
+        question = new Question
+        {
+            questionId = questionData["id"].ToString(),
+            category = questionData["category"],
+            questionDescription = questionData["problem"],
+            correctAnswer = questionData["answer"],
+            optionA = questionData["choice1"],
+            optionB = questionData["choice2"],
+            optionC = questionData["choice3"],
+            optionD = questionData["choice4"],
+            correctRate = questionData["userAnswered"] == 0 ? 0.0 : questionData["userCorrect"] / questionData["userAnswered"],
+            level = level
+
+        };
+
+        SetText();
+        SetTickPosition();
+
     }
 
     public void Start()
     {
         questionHeader = transform.Find("LeftSide").Find("QuestionHeader");
-        description = transform.Find("LeftSide").Find("ScrollArea").Find("TextContainer").Find("Description");
+        description = transform.Find("LeftSide").Find("Description");
         optionA = transform.Find("RightSide").Find("optionA");
         optionB = transform.Find("RightSide").Find("optionB");
         optionC = transform.Find("RightSide").Find("optionC");
@@ -48,18 +93,8 @@ public class QuestionDetail : MonoBehaviour
         tick = transform.Find("RightSide").Find("tick");
         accuracy = transform.Find("RightSide").Find("correctRate");
 
-        // initialize if run for first time to create the json file
-        AddTestData();
-
-        // construct object from json file
-        string jsonString = PlayerPrefs.GetString("questionDetails");
-        JsonEntry jsonEntry = JsonUtility.FromJson<JsonEntry>(jsonString);
-        Debug.Log(jsonString);
-        question = jsonEntry.question;
-        
-
-        SetText();
-        SetTickPosition();
+        StartCoroutine(GetQuestionById(int.Parse(StaticVariable.questionId)));
+        // StartCoroutine(GetQuestionById(1));
 
     }
 
@@ -68,9 +103,9 @@ public class QuestionDetail : MonoBehaviour
 
         questionHeader.Find("id").GetComponent<Text>().text = question.questionId;
         questionHeader.Find("category").GetComponent<Text>().text = question.category;
-
+        questionHeader.Find("level").GetComponent<Text>().text = question.level;
         description.GetComponent<Text>().text = question.questionDescription;
-        
+
         optionA.GetComponent<Text>().text = question.optionA;
         optionB.GetComponent<Text>().text = question.optionB;
         optionC.GetComponent<Text>().text = question.optionC;
@@ -83,35 +118,12 @@ public class QuestionDetail : MonoBehaviour
     private void SetTickPosition()
     {
         RectTransform optionRectTransform = new RectTransform();
-        
-        if (question.correctAnswer == "A") optionRectTransform = transform.Find("Static").Find("A").GetComponent<RectTransform>();
-        else if (question.correctAnswer == "B") optionRectTransform = transform.Find("Static").Find("B").GetComponent<RectTransform>();
-        else if (question.correctAnswer == "C") optionRectTransform = transform.Find("Static").Find("C").GetComponent<RectTransform>();
-        else if (question.correctAnswer == "D") optionRectTransform = transform.Find("Static").Find("D").GetComponent<RectTransform>();
 
-        tick.GetComponent<RectTransform>().anchoredPosition = new Vector2(optionRectTransform.anchoredPosition.x - 50, optionRectTransform.anchoredPosition.y);
-    }
+        if (question.correctAnswer == 1) optionRectTransform = transform.Find("Static").Find("A").GetComponent<RectTransform>();
+        else if (question.correctAnswer == 2) optionRectTransform = transform.Find("Static").Find("B").GetComponent<RectTransform>();
+        else if (question.correctAnswer == 3) optionRectTransform = transform.Find("Static").Find("C").GetComponent<RectTransform>();
+        else if (question.correctAnswer == 4) optionRectTransform = transform.Find("Static").Find("D").GetComponent<RectTransform>();
 
-    public void AddTestData()
-    {
-        Question currentQuestion = new Question
-        {
-            questionId = StaticVariable.questionId,
-            category = "SWE",
-            questionDescription = "I have a simple question , how can I delete a cloned or instantiated object after 1 second without deleting the original. The GameObject is just a 3d object with no scripts attached. All I want to do is instantiate an object at certain coordinates when required and destroy it after 1 second. Any help will be appreciated",
-            correctAnswer = "C",
-            optionA = "Choose me choose me",
-            optionB = "Don't listen to him",
-            optionC = "Hello don't ignore me",
-            optionD = "I am the best!",
-            correctRate = 0.78f
-        };
-
-        JsonEntry jsonEntry = new JsonEntry { question = currentQuestion };
-        string json_question = JsonUtility.ToJson(jsonEntry);
-
-        PlayerPrefs.SetString("questionDetails", json_question);
-        PlayerPrefs.Save();
-        Debug.Log(json_question);
+        tick.GetComponent<RectTransform>().anchoredPosition = new Vector2(optionRectTransform.anchoredPosition.x + 35, optionRectTransform.anchoredPosition.y + 10);
     }
 }

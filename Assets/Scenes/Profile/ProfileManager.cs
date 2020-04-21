@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
+using UnityEngine.Networking;
+using SimpleJSON;
 
 public class ProfileManager : MonoBehaviour
 {
@@ -11,7 +13,7 @@ public class ProfileManager : MonoBehaviour
     private Transform bars;
     private Transform barValues;
     private Transform tableContent;
-
+    private readonly string baseUrl = "http://localhost:9090/api/";
     private Profile profile;
 
     [Serializable]
@@ -22,35 +24,151 @@ public class ProfileManager : MonoBehaviour
         public string realName;
         public List<int> expPoints;
         public List<int> damagePoints;
-        public List<int> hitPoints;
+        public List<int> noQuestions;
+        public List<int> level;
         public List<double> accuracy;
     }
 
-    private class JsonEntry
+    private void ConstructProfile(JSONNode playerData, JSONNode worldData, JSONNode reportData)
     {
-        public Profile profile;
-    }
+        string studentId = playerData["id"].ToString();
+        string username = playerData["username"];
+        string realName = playerData["realName"];
 
-    private void AddTestData()
-    {
-        Profile currentProfile = new Profile
+        // overall, SE, SA, PM, QA
+
+        // construct level
+        List<int> level = new List<int>();
+        level.Add(worldData["SE"] == null ? 0 : (int)worldData["SE"]["level"]);
+        level.Add(worldData["SA"] == null ? 0 : (int)worldData["SA"]["level"]);
+        level.Add(worldData["PM"] == null ? 0 : (int)worldData["PM"]["level"]);
+        level.Add(worldData["QA"] == null ? 0 : (int)worldData["QA"]["level"]);
+        level.Insert(0, (int)Math.Round((level[0] + level[1] + level[2] + level[3]) / 4.0));
+
+
+        // construct exp points
+        List<int> expPoints = new List<int>();
+        expPoints.Add(playerData["overallExp"]);
+        expPoints.Add(worldData["SE"] == null ? 0 : (int)worldData["SE"]["exp"]);
+        expPoints.Add(worldData["SA"] == null ? 0 : (int)worldData["SA"]["exp"]);
+        expPoints.Add(worldData["PM"] == null ? 0 : (int)worldData["PM"]["exp"]);
+        expPoints.Add(worldData["QA"] == null ? 0 : (int)worldData["QA"]["exp"]);
+
+        // construct damagePoints;
+        List<int> damagePoints = new List<int>();
+        damagePoints.Add(worldData["SE"] == null ? 0 : (int)worldData["SE"]["attackPt"]);
+        damagePoints.Add(worldData["SA"] == null ? 0 : (int)worldData["SA"]["attackPt"]);
+        damagePoints.Add(worldData["PM"] == null ? 0 : (int)worldData["PM"]["attackPt"]);
+        damagePoints.Add(worldData["QA"] == null ? 0 : (int)worldData["QA"]["attackPt"]);
+        damagePoints.Insert(0, (int)Math.Round((damagePoints[0] + damagePoints[1] + damagePoints[2] + damagePoints[3]) / 4.0));
+
+        // construct noQuestions answered
+        List<int> noQuestions = new List<int>();
+        noQuestions.Add(worldData["SE"] == null ? 0 : (int)worldData["SE"]["totalQuesNo"]);
+        noQuestions.Add(worldData["SA"] == null ? 0 : (int)worldData["SA"]["totalQuesNo"]);
+        noQuestions.Add(worldData["PM"] == null ? 0 : (int)worldData["PM"]["totalQuesNo"]);
+        noQuestions.Add(worldData["QA"] == null ? 0 : (int)worldData["QA"]["totalQuesNo"]);
+        noQuestions.Add(noQuestions[0] + noQuestions[1] + noQuestions[2] + noQuestions[3]);
+
+        // construct accuracy
+        List<double> accuracy = new List<double>();
+        accuracy.Add(worldData["SE"] == null || worldData["SE"]["totalQuesNo"] == 0 ? 0.0 : worldData["SE"]["correctQuesNo"] / worldData["SE"]["totalQuesNo"]);
+        accuracy.Add(worldData["SA"] == null || worldData["SA"]["totalQuesNo"] == 0 ? 0.0 : worldData["SA"]["correctQuesNo"] / worldData["SA"]["totalQuesNo"]);
+        accuracy.Add(worldData["PM"] == null || worldData["PM"]["totalQuesNo"] == 0 ? 0.0 : worldData["PM"]["correctQuesNo"] / worldData["PM"]["totalQuesNo"]);
+        accuracy.Add(worldData["QA"] == null || worldData["QA"]["totalQuesNo"] == 0 ? 0.0 : worldData["QA"]["correctQuesNo"] / worldData["QA"]["totalQuesNo"]);
+
+        if (reportData["overall_accuracy"] == "NaN")
         {
-            studentId = "1",
-            username = "Yostas Specter",
-            realName = "Duan Yiting",
-            expPoints = new List<int>() { 55, 46, 99, 67, 10 },
-            damagePoints = new List<int>() { 40, 41, 42, 43, 44 },
-            hitPoints = new List<int>() { 60, 61, 62, 63, 64 },
-            accuracy = new List<double>() { 0.78, 0.87, 0.99, 0.91, 0.90}
+            accuracy.Insert(0, 0.0);
+        }
+        else
+        {
+            accuracy.Insert(0, (double)reportData["overall_accuracy"]);
+        }
+
+        profile = new Profile
+        {
+            studentId = studentId,
+            username = username,
+            realName = realName,
+            expPoints = expPoints,
+            damagePoints = damagePoints,
+            noQuestions = noQuestions,
+            level = level,
+            accuracy = accuracy
         };
 
-        JsonEntry jsonEntry = new JsonEntry { profile = currentProfile };
-        string jsonString = JsonUtility.ToJson(jsonEntry);
+        SetStudent();
+        SetTable("Rect0");
+        SetBarValues();
+        SetBarHeights();
+        SetValuePositions();
 
-        PlayerPrefs.SetString("profile", jsonString);
-        PlayerPrefs.Save();
-        Debug.Log(jsonString);
     }
+
+    IEnumerator GetProfileByStudentId(string studentId)
+    {
+        string playerUrl = baseUrl + "player/getUser/" + studentId;
+        string worldUrl = baseUrl + "world/getCharsByUserId/" + studentId;
+        string reportUrl = baseUrl + "player/getReport/" + studentId;
+
+        // requesting player data
+        UnityWebRequest playerRequest = UnityWebRequest.Get(playerUrl);
+        yield return playerRequest.SendWebRequest();
+
+        if (playerRequest.isNetworkError || playerRequest.isHttpError)
+        {
+            Debug.Log(playerRequest.error);
+            yield break;
+        }
+        else
+        {
+            Debug.Log("Get player data successfully");
+        }
+
+        JSONNode playerData = JSON.Parse(playerRequest.downloadHandler.text);
+        Debug.Log(playerData);
+
+
+        // requesting report data
+        UnityWebRequest reportRequest = UnityWebRequest.Get(reportUrl);
+        yield return reportRequest.SendWebRequest();
+
+        if (reportRequest.isNetworkError || reportRequest.isHttpError)
+        {
+            Debug.Log(reportRequest.error);
+            yield break;
+        }
+        else
+        {
+            Debug.Log("Get report data successfully");
+        }
+        JSONNode reportData = JSON.Parse(reportRequest.downloadHandler.text);
+        Debug.Log(reportData);
+
+
+        // requesting world data
+        UnityWebRequest worldRequest = UnityWebRequest.Get(worldUrl);
+        yield return worldRequest.SendWebRequest();
+
+        if (worldRequest.isNetworkError || worldRequest.isHttpError)
+        {
+            Debug.Log(worldRequest.error);
+            yield break;
+        }
+        else
+        {
+            Debug.Log("Get world data successfully");
+        }
+
+        JSONNode worldData = JSON.Parse(worldRequest.downloadHandler.text);
+        Debug.Log(worldData);
+
+
+        ConstructProfile(playerData, worldData, reportData);
+
+    }
+
 
     public void Start()
     {
@@ -59,27 +177,27 @@ public class ProfileManager : MonoBehaviour
         barValues = transform.Find("BarChart").Find("BarValues");
         tableContent = transform.Find("BarChart").Find("TableContent");
 
-        // uncomment this if running for first time only!!!
-        // AddTestData();
+        if (StaticVariable.isFromLeaderboard == true)
+        {
+            StartCoroutine(GetProfileByStudentId(StaticVariable.leaderboardId));
+        } else
+        {
+            StartCoroutine(GetProfileByStudentId(StaticVariable.studentId));
 
-        string jsonString = PlayerPrefs.GetString("profile");
-        JsonEntry jsonEntry = JsonUtility.FromJson<JsonEntry>(jsonString);
-        Debug.Log(jsonString);
-        profile = jsonEntry.profile;
+        }
+        // StartCoroutine(GetProfileByStudentId("1"));
 
-        SetStudent();
-        SetTable("Rect1");
-        SetBarValues();
-        SetBarHeights();
-        SetValuePositions();
+
     }
 
     private void SetStudent()
     {
-        student.Find("StudentName").GetComponent<Text>().text = profile.realName;
+        Debug.Log(profile.realName);
+        //student.Find("StudentName").GetComponent<Text>().text = profile.realName;
         student.Find("Username").GetComponent<Text>().text = profile.username;
         student.Find("Initials").GetComponent<Text>().text = GetInitials();
         student.Find("Avatar").GetComponent<Image>().color = SetColor();
+        student.Find("StudentName").GetComponent<Text>().text = profile.realName;
 
     }
 
@@ -92,7 +210,7 @@ public class ProfileManager : MonoBehaviour
             tableContent.Find("Level").GetComponent<Text>().text = CalculateLevel(profile.expPoints[0]).ToString();
             tableContent.Find("Exp").GetComponent<Text>().text = profile.expPoints[0].ToString();
             tableContent.Find("Damage").GetComponent<Text>().text = profile.damagePoints[0].ToString();
-            tableContent.Find("Hp").GetComponent<Text>().text = profile.hitPoints[0].ToString();
+            tableContent.Find("No. Questions").GetComponent<Text>().text = profile.noQuestions[0].ToString();
             tableContent.Find("Accuracy").GetComponent<Text>().text = ((int)System.Math.Round(profile.accuracy[0] * 100)).ToString() + "%";
         }
         else if (choice == "Rect1" || choice == "char0")
@@ -101,7 +219,7 @@ public class ProfileManager : MonoBehaviour
             tableContent.Find("Level").GetComponent<Text>().text = CalculateLevel(profile.expPoints[1]).ToString();
             tableContent.Find("Exp").GetComponent<Text>().text = profile.expPoints[1].ToString();
             tableContent.Find("Damage").GetComponent<Text>().text = profile.damagePoints[1].ToString();
-            tableContent.Find("Hp").GetComponent<Text>().text = profile.hitPoints[1].ToString();
+            tableContent.Find("No. Questions").GetComponent<Text>().text = profile.noQuestions[1].ToString();
             tableContent.Find("Accuracy").GetComponent<Text>().text = ((int)System.Math.Round(profile.accuracy[1] * 100)).ToString() + "%";
 
         }
@@ -111,7 +229,7 @@ public class ProfileManager : MonoBehaviour
             tableContent.Find("Level").GetComponent<Text>().text = CalculateLevel(profile.expPoints[2]).ToString();
             tableContent.Find("Exp").GetComponent<Text>().text = profile.expPoints[2].ToString();
             tableContent.Find("Damage").GetComponent<Text>().text = profile.damagePoints[2].ToString();
-            tableContent.Find("Hp").GetComponent<Text>().text = profile.hitPoints[2].ToString();
+            tableContent.Find("No. Questions").GetComponent<Text>().text = profile.noQuestions[2].ToString();
             tableContent.Find("Accuracy").GetComponent<Text>().text = ((int)System.Math.Round(profile.accuracy[2] * 100)).ToString() + "%";
 
         }
@@ -121,7 +239,7 @@ public class ProfileManager : MonoBehaviour
             tableContent.Find("Level").GetComponent<Text>().text = CalculateLevel(profile.expPoints[3]).ToString();
             tableContent.Find("Exp").GetComponent<Text>().text = profile.expPoints[3].ToString();
             tableContent.Find("Damage").GetComponent<Text>().text = profile.damagePoints[3].ToString();
-            tableContent.Find("Hp").GetComponent<Text>().text = profile.hitPoints[3].ToString();
+            tableContent.Find("No. Questions").GetComponent<Text>().text = profile.noQuestions[3].ToString();
             tableContent.Find("Accuracy").GetComponent<Text>().text = ((int)System.Math.Round(profile.accuracy[3] * 100)).ToString() + "%";
 
         }
@@ -131,7 +249,7 @@ public class ProfileManager : MonoBehaviour
             tableContent.Find("Level").GetComponent<Text>().text = CalculateLevel(profile.expPoints[4]).ToString();
             tableContent.Find("Exp").GetComponent<Text>().text = profile.expPoints[4].ToString();
             tableContent.Find("Damage").GetComponent<Text>().text = profile.damagePoints[4].ToString();
-            tableContent.Find("Hp").GetComponent<Text>().text = profile.hitPoints[4].ToString();
+            tableContent.Find("No. Questions").GetComponent<Text>().text = profile.noQuestions[4].ToString();
             tableContent.Find("Accuracy").GetComponent<Text>().text = ((int)System.Math.Round(profile.accuracy[4] * 100)).ToString() + "%";
 
         }
@@ -158,11 +276,11 @@ public class ProfileManager : MonoBehaviour
 
     private void SetValuePositions()
     {
-        barValues.Find("Exp0").GetComponent<RectTransform>().anchoredPosition = new Vector2(bars.Find("Rect0").GetComponent<RectTransform>().anchoredPosition.x, bars.Find("Rect0").GetComponent<RectTransform>().rect.width-85);
-        barValues.Find("Exp1").GetComponent<RectTransform>().anchoredPosition = new Vector2(bars.Find("Rect1").GetComponent<RectTransform>().anchoredPosition.x, bars.Find("Rect1").GetComponent<RectTransform>().rect.width-85);
-        barValues.Find("Exp2").GetComponent<RectTransform>().anchoredPosition = new Vector2(bars.Find("Rect2").GetComponent<RectTransform>().anchoredPosition.x, bars.Find("Rect2").GetComponent<RectTransform>().rect.width-85);
-        barValues.Find("Exp3").GetComponent<RectTransform>().anchoredPosition = new Vector2(bars.Find("Rect3").GetComponent<RectTransform>().anchoredPosition.x, bars.Find("Rect3").GetComponent<RectTransform>().rect.width-85);
-        barValues.Find("Exp4").GetComponent<RectTransform>().anchoredPosition = new Vector2(bars.Find("Rect4").GetComponent<RectTransform>().anchoredPosition.x, bars.Find("Rect4").GetComponent<RectTransform>().rect.width-85);
+        barValues.Find("Exp0").GetComponent<RectTransform>().anchoredPosition = new Vector2(bars.Find("Rect0").GetComponent<RectTransform>().anchoredPosition.x, bars.Find("Rect0").GetComponent<RectTransform>().rect.width - 85);
+        barValues.Find("Exp1").GetComponent<RectTransform>().anchoredPosition = new Vector2(bars.Find("Rect1").GetComponent<RectTransform>().anchoredPosition.x, bars.Find("Rect1").GetComponent<RectTransform>().rect.width - 85);
+        barValues.Find("Exp2").GetComponent<RectTransform>().anchoredPosition = new Vector2(bars.Find("Rect2").GetComponent<RectTransform>().anchoredPosition.x, bars.Find("Rect2").GetComponent<RectTransform>().rect.width - 85);
+        barValues.Find("Exp3").GetComponent<RectTransform>().anchoredPosition = new Vector2(bars.Find("Rect3").GetComponent<RectTransform>().anchoredPosition.x, bars.Find("Rect3").GetComponent<RectTransform>().rect.width - 85);
+        barValues.Find("Exp4").GetComponent<RectTransform>().anchoredPosition = new Vector2(bars.Find("Rect4").GetComponent<RectTransform>().anchoredPosition.x, bars.Find("Rect4").GetComponent<RectTransform>().rect.width - 85);
 
     }
 
@@ -178,7 +296,7 @@ public class ProfileManager : MonoBehaviour
         SetTable(EventSystem.current.currentSelectedGameObject.transform.name);
     }
 
-    private int CalculateLevel (int exp)
+    private int CalculateLevel(int exp)
     {
         return exp / 10;
     }

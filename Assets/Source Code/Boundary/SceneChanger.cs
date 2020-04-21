@@ -52,16 +52,35 @@ public class SceneChanger : MonoBehaviour
 
     public void profilePageTransferScene()
     {
-        SceneManager.LoadScene(StaticVariable.scene);
+        if (StaticVariable.isFromLeaderboard == true)
+        {
+            SceneManager.LoadScene("LeaderBoard");
+            StaticVariable.isFromLeaderboard = false;
+
+        }
+        else
+        {
+            SceneManager.LoadScene("Mode");
+        }
     }
 
     public void reportPageTransferScene()
     {
-        SceneManager.LoadScene(StaticVariable.scene);
+        if (StaticVariable.isFromReportList == false)
+        {
+            SceneManager.LoadScene("Mode");
+        }
+
+
+        else {
+            StaticVariable.isFromReportList = false;
+            SceneManager.LoadScene("AllReport");
+        }
     }
 
     public void toIndiReport()
     {
+        StaticVariable.isFromReportList = false;
         SceneManager.LoadScene("IndiReport");
     }
 

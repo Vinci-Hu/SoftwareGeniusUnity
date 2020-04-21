@@ -9,6 +9,10 @@ public class StaticVariable : MonoBehaviour
     static public string nameStudent = "Angel";
     static public bool isStudent = true;
     static public string questionId;
-    static public string studentId;
+    static public string studentId = "1";
+    static public string reportId = "1";
+    static public string leaderboardId;
+    static public bool isFromReportList;
+    static public bool isFromLeaderboard;
     //defalut Mode Scene
 }

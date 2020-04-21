@@ -5,7 +5,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
-
+using UnityEngine.Networking;
+using System;
+using SimpleJSON;
 public class ReportList : MonoBehaviour
 {
     private Transform buttonScrollList;
@@ -14,11 +16,12 @@ public class ReportList : MonoBehaviour
     private Transform reportEntryTemplate;
     private List<Transform> reportEntryTransformList;
     private int choice;
-    private Entries entries;
+    private List<ReportEntry> reports = new List<ReportEntry>();
     bool updated = false;
+    private readonly string baseUrl = "http://localhost:9090/api/";
 
     static public string studentId;
-
+    private int noPlayers;
 
     public void HandleInputData(int val)
     {
@@ -27,27 +30,108 @@ public class ReportList : MonoBehaviour
         Debug.Log(choice);
     }
 
-
-    private class Entries
+    IEnumerator GetReportEntry(string studentId)
     {
-        public List<ReportEntry> reportEntryList;
+        string reportUrl = baseUrl + "player/getReport/" + studentId;
+
+        // requesting player data
+        UnityWebRequest reportRequest = UnityWebRequest.Get(reportUrl);
+        yield return reportRequest.SendWebRequest();
+
+        if (reportRequest.isNetworkError || reportRequest.isHttpError)
+        {
+            Debug.Log(reportRequest.error);
+            yield break;
+        }
+        else
+        {
+            Debug.Log("Get player data successfully");
+        }
+
+        JSONNode reportData = JSON.Parse(reportRequest.downloadHandler.text);
+        Debug.Log(reportData);
+
+        ReportEntry report = ConstructReportEntry(reportData);
+
+        reports.Add(report);
+
+        if (reports.Count == noPlayers)
+        {
+            Display(choice);
+
+        }
+
+    }
+
+    IEnumerator GetNoPlayers()
+    {
+        string overallReportUrl = baseUrl + "player/getOverallReport";
+        UnityWebRequest overallReportRequest = UnityWebRequest.Get(overallReportUrl);
+        yield return overallReportRequest.SendWebRequest();
+
+        if (overallReportRequest.isNetworkError || overallReportRequest.isHttpError)
+        {
+            Debug.Log(overallReportRequest.error);
+            yield break;
+        }
+        else
+        {
+            Debug.Log("Get overall report successfully");
+        }
+
+        JSONNode overallReportData = JSON.Parse(overallReportRequest.downloadHandler.text);
+
+        int noReports = (int)overallReportData["student_num"];
+        noPlayers = (int)overallReportData["student_num"];
+        for (int i = 0; i < noReports; i++)
+        {
+            StartCoroutine(GetReportEntry((i + 1).ToString()));
+        }
+
+        Debug.Log("call from getNoPlayers");
+
+    }
+
+    private ReportEntry ConstructReportEntry(JSONNode reportData)
+    {
+        string studentId = reportData["userId"];
+        string name = reportData["real_name"];
+        double accuracy;
+        if (reportData["overall_accuracy"] == "NaN")
+        {
+            accuracy = 0.0;
+        }
+        else
+        {
+            accuracy = (double)reportData["overall_accuracy"];
+        }
+
+        ReportEntry reportEntry = new ReportEntry
+        {
+            studentId = studentId,
+            name = name,
+            accuracy = accuracy
+        };
+
+        return reportEntry;
     }
 
 
-    [System.Serializable]
+    [Serializable]
     private class ReportEntry
     {
         public string studentId;
         public string name;
-        public float accuracy;
+        public double accuracy;
     }
 
 
     public void Update()
     {
-        if (updated == true)
+        if (updated == true && reports.Count == noPlayers)
         {
             ClearList(reportEntryTransformList);
+            Debug.Log("call from update");
             Display(choice);
             updated = false;
         }
@@ -57,45 +141,28 @@ public class ReportList : MonoBehaviour
     public void ReportClicked()
     {
         Debug.Log(EventSystem.current.currentSelectedGameObject.transform.Find("StudentId").GetComponent<Text>().text);
-        StaticVariable.studentId = EventSystem.current.currentSelectedGameObject.transform.Find("StudentId").GetComponent<Text>().text;
+        StaticVariable.reportId = EventSystem.current.currentSelectedGameObject.transform.Find("StudentId").GetComponent<Text>().text;
         SceneManager.LoadScene("IndiReport");
     }
 
     private void Start()
     {
+        StaticVariable.isFromReportList = true;
+
         buttonScrollList = transform.Find("ButtonScrollList");
         buttonListViewPort = buttonScrollList.Find("ButtonListViewPort");
         buttonListContent = buttonListViewPort.Find("ButtonListContent");
         reportEntryTemplate = buttonListContent.Find("ReportEntryTemplate");
         reportEntryTemplate.gameObject.SetActive(false);
 
-        // when launching for the first time, create test lib
-        //AddTestLibrary();
+        StartCoroutine(GetNoPlayers());
 
-        // load data from json
-        string jsonString = PlayerPrefs.GetString("reportTable");
-        entries = JsonUtility.FromJson<Entries>(jsonString);
-
-        // add new entry (would be added to json)
-        //AddQuestionEntry("id=1", "nice question", 0.6f);
-        //AddQuestionEntry("id=2", "good question", 0.7f);
-        //AddQuestionEntry("id=3", "hello question", 0.5f);
-        //AddQuestionEntry("id=4", "what question", 0.3f);
-        //AddQuestionEntry("id=5", "aiii question", 0.6f);
-        //AddQuestionEntry("id=6", "sad question", 0.9f);
-        //AddQuestionEntry("id=7", "what todo question", 1.0f);
-        //AddQuestionEntry("id=8", "aaaah question", 0.4f);
-        //AddQuestionEntry("id=9", "damn question", 0.5f);
-        //AddQuestionEntry("id=10", "orz question", 0.66f);
-        //AddQuestionEntry("id=11", "hell question", 0.67f);
-
-        Display(choice);
     }
 
 
     private void Display(int choice)
     {
-        List<ReportEntry> sortedList = Sort(entries.reportEntryList, choice);
+        List<ReportEntry> sortedList = Sort(reports, choice);
 
         reportEntryTransformList = new List<Transform>();
         for (int i = 0; i < sortedList.Count; i++)
@@ -120,42 +187,6 @@ public class ReportList : MonoBehaviour
     }
 
 
-    private void AddReportEntry(string studentId, string name, float accuracy)
-    {
-        ReportEntry reportEntry = new ReportEntry { studentId = studentId, name = name, accuracy = accuracy };
-        string jsonString = PlayerPrefs.GetString("reportTable");
-        entries = JsonUtility.FromJson<Entries>(jsonString);
-        entries.reportEntryList.Add(reportEntry);
-        string json = JsonUtility.ToJson(entries);
-        PlayerPrefs.SetString("reportTable", json);
-        PlayerPrefs.Save();
-    }
-
-
-    private void AddTestLibrary()
-    {
-        List<ReportEntry> reportEntryListcreated = new List<ReportEntry>()
-        {
-            new ReportEntry{studentId = "3471827", name = "Dou Maokang", accuracy = 0.6f},
-            new ReportEntry{studentId = "4535345", name = "Duan Maokang", accuracy = 0.7f},
-            new ReportEntry{studentId = "5254646", name = "Wang Maokang", accuracy = 0.34f},
-            new ReportEntry{studentId = "3457856", name = "Li Maokang", accuracy = 0.23f},
-            new ReportEntry{studentId = "3453657", name = "Zhang Maokang", accuracy = 0.98f},
-            new ReportEntry{studentId = "2346765", name = "Chen Maokang", accuracy = 0.6f},
-            new ReportEntry{studentId = "8765424", name = "Jin Maokang", accuracy = 0.54f},
-            new ReportEntry{studentId = "6867453", name = "Zhou Maokang", accuracy = 0.6f},
-            new ReportEntry{studentId = "5673463", name = "Zou Maokang", accuracy = 0.67f},
-            new ReportEntry{studentId = "9876534", name = "Gan Maokang", accuracy = 0.88f}
-        };
-        Entries reports = new Entries { reportEntryList = reportEntryListcreated };
-        string json = JsonUtility.ToJson(reports);
-        PlayerPrefs.SetString("reportTable", json);
-        PlayerPrefs.Save();
-        Debug.Log(PlayerPrefs.GetString("reportTable"));
-    }
-
-
-
     private List<ReportEntry> Sort(List<ReportEntry> reportEntryList, int criteria)
     {
         if (criteria == 0)
@@ -164,7 +195,7 @@ public class ReportList : MonoBehaviour
             {
                 for (int j = i + 1; j < reportEntryList.Count; j++)
                 {
-                    if (string.Compare(reportEntryList[j].studentId, reportEntryList[i].studentId) < 0)
+                    if (int.Parse(reportEntryList[j].studentId) < int.Parse(reportEntryList[i].studentId))
                     {
                         ReportEntry temp = reportEntryList[i];
                         reportEntryList[i] = reportEntryList[j];

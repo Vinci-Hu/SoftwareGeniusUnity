@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using System;
+using UnityEngine.Networking;
+using SimpleJSON;
 
 public class QuestionList : MonoBehaviour
 {
@@ -14,7 +17,7 @@ public class QuestionList : MonoBehaviour
     private Transform questionEntryTemplate;
     private List<Transform> questionEntryTransformList;
     private int choice;
-    private Entries entries;
+    private List<QuestionEntry> questions = new List<QuestionEntry>();
     bool updated = false;
 
     static public string questionId;
@@ -31,13 +34,49 @@ public class QuestionList : MonoBehaviour
         public List<QuestionEntry> questionEntryList;
     }
 
-    [System.Serializable]
+    [Serializable]
     private class QuestionEntry
     {
         public string questionId;
         public string title;
-        public float accuracy;
+        public double accuracy;
     }
+
+
+    IEnumerator GetAllQuestions()
+    {
+        string questionUrl = "http://localhost:9090/api/question/AllQuestions";
+        UnityWebRequest questionRequest = UnityWebRequest.Get(questionUrl);
+        yield return questionRequest.SendWebRequest();
+
+        if (questionRequest.isNetworkError || questionRequest.isHttpError)
+        {
+            Debug.Log(questionRequest.error);
+            yield break;
+        }
+        else
+        {
+            Debug.Log("Get all questions successfully");
+        }
+
+        JSONNode questionData = JSON.Parse(questionRequest.downloadHandler.text);
+
+        for (int i = 0; i < questionData.Count; i++)
+        {
+            QuestionEntry questionEntry = new QuestionEntry
+            {
+                questionId = questionData[i]["id"].ToString(),
+                title = questionData[i]["problem"],
+                accuracy = questionData[i]["userAnswered"] == 0 ? 0.0 : questionData[i]["userCorrect"] / questionData[i]["questionAnswered"]
+            };
+
+            Debug.Log("Added");
+            questions.Add(questionEntry);
+        }
+
+        Display(choice);
+    }
+
 
     void Update()
     {
@@ -64,26 +103,14 @@ public class QuestionList : MonoBehaviour
         questionEntryTemplate = buttonListContent.Find("QuestionEntryTemplate");
         questionEntryTemplate.gameObject.SetActive(false);
 
-        // when launching for the first time, create test lib
-        AddTestLibrary();
-
-        // load data from json
-        string jsonString = PlayerPrefs.GetString("questionTable");
-        entries = JsonUtility.FromJson<Entries>(jsonString);
-
-        // add new entry (would be added to json)
-        //AddQuestionEntry("id=1", "nice question", 0.6f);
-        //AddQuestionEntry("id=2", "good question", 0.7f);
-
+        StartCoroutine(GetAllQuestions());
         Debug.Log("Start Called");
-        Display(choice);
-
     }
 
     private void Display(int choice)
     {
         Debug.Log("Display called");
-        List<QuestionEntry> sortedList = Sort(entries.questionEntryList, choice);
+        List<QuestionEntry> sortedList = Sort(questions, choice);
 
         questionEntryTransformList = new List<Transform>();
         for (int i = 0; i < sortedList.Count; i++)
@@ -100,21 +127,10 @@ public class QuestionList : MonoBehaviour
 
     private void ClearList(List<Transform> questionEntryTransformList)
     {
-        foreach(Transform entryTransform in questionEntryTransformList)
+        foreach (Transform entryTransform in questionEntryTransformList)
         {
             Destroy(entryTransform.gameObject);
         }
-    }
-
-    private void AddQuestionEntry(string questionId, string title, float accuracy)
-    {
-        QuestionEntry questionEntry = new QuestionEntry { questionId = questionId, title = title, accuracy = accuracy };
-        string jsonString = PlayerPrefs.GetString("questionTable");
-        entries = JsonUtility.FromJson<Entries>(jsonString);
-        entries.questionEntryList.Add(questionEntry);
-        string json = JsonUtility.ToJson(entries);
-        PlayerPrefs.SetString("questionTable", json);
-        PlayerPrefs.Save();
     }
 
     private List<QuestionEntry> Sort(List<QuestionEntry> questionEntryList, int criteria)
@@ -126,7 +142,7 @@ public class QuestionList : MonoBehaviour
             {
                 for (int j = i + 1; j < questionEntryList.Count; j++)
                 {
-                    if (string.Compare(questionEntryList[j].questionId, questionEntryList[i].questionId) < 0)
+                    if (int.Parse(questionEntryList[j].questionId) < int.Parse(questionEntryList[i].questionId))
                     {
                         QuestionEntry temp = questionEntryList[i];
                         questionEntryList[i] = questionEntryList[j];
@@ -187,21 +203,4 @@ public class QuestionList : MonoBehaviour
         return questionEntryList;
     }
 
-
-    private void AddTestLibrary()
-    {
-        // create first entry
-        List<QuestionEntry> questionEntries = new List<QuestionEntry>
-        {
-            new QuestionEntry {questionId = "000", title = "test lib question", accuracy = 1.0f},
-            new QuestionEntry {questionId = "111", title = "test lib question2", accuracy = 0.9f},
-
-        };
-
-        // create json file
-        Entries testEntries = new Entries { questionEntryList = questionEntries };
-        string json_questions = JsonUtility.ToJson(testEntries);
-        PlayerPrefs.SetString("questionTable", json_questions);
-        PlayerPrefs.Save();
-    }
 }

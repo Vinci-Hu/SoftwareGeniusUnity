@@ -117,9 +117,10 @@ public class LeaderboardManagement : MonoBehaviour
 
     public void UserClicked()
     {
+        StaticVariable.isFromLeaderboard = true;
         Debug.Log(EventSystem.current.currentSelectedGameObject.transform.Find("nameText").GetComponent<Text>().text);
-        StaticVariable.studentId = EventSystem.current.currentSelectedGameObject.transform.Find("userId").GetComponent<Text>().text;
-        Debug.Log("Leaderboard" + StaticVariable.studentId);
+        StaticVariable.leaderboardId = EventSystem.current.currentSelectedGameObject.transform.Find("userId").GetComponent<Text>().text;
+        Debug.Log("Leaderboard" + StaticVariable.leaderboardId);
         SceneManager.LoadScene("Profile");
         StaticVariable.scene = "LeaderBoard";
     }

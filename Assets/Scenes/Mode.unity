@@ -895,7 +895,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: User Name
+  m_Text: Profile
 --- !u!222 &890714044
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -1,5 +1,4 @@
 
-Library/*
-Temp/UnityLockfile
+Library/
+Temp/
 .vs/SoftwareGeniusUnity/v16/Server/sqlite3/db.lock
-Temp/*

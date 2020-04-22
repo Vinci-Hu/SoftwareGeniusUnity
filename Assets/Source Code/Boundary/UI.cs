@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Text.RegularExpressions;
 
 public class UI : MonoBehaviour
 {
@@ -35,10 +36,11 @@ public class UI : MonoBehaviour
 
     private GUIStyle guiStyle = new GUIStyle(); //create a new variable
 
-    //Has bug here
+    [SerializeField] public AlertWindow alert;
     private void Start()
     {
         this.userName.characterLimit = 15;
+        this.realName.characterLimit = 25;
         this.password.characterLimit = 15;
         this.reEnterPW.characterLimit = 15;
         this.loginPassword.characterLimit = 15;
@@ -88,20 +90,30 @@ public class UI : MonoBehaviour
     }
     */
     //string userName, string email, string realName, string pw, string answerForSecurity
+
+    public const string MatchEmailPattern = @"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$";
+
+    public static bool validateEmail(string email)
+    {
+        if ( email != null)
+            return Regex.IsMatch(email, MatchEmailPattern);
+        else
+            return false;
+    }
+
     public void ClickSignUp()
     {
+        bool emailformat = validateEmail(dataManager.data.email);
         // || dataManager.data.dropdown ==0 || dataManager.data.answerForSecurity ==""
-        if (dataManager.data.userName == "" || dataManager.data.email == "" || dataManager.data.realName == ""
+        if (dataManager.data.userName == "" || dataManager.data.email == "" ||  emailformat == false || dataManager.data.realName == ""
             || dataManager.data.password == "" || dataManager.data.password != reEnterPW.text)
         {
-            showPopUp = true;
-            OnGUI();
+            alert.Show("Invalid input");
         }
         else
         {
-            showSuccessPopUp = true;
             StartCoroutine(dataManager.signUp());
-            OnGUI();
+            alert.Show("Sign up successfully!");
             userName.text = "";
             email.text = "";
             realName.text = "";
@@ -116,20 +128,18 @@ public class UI : MonoBehaviour
     {
         if (dataManager.logindata.userName == "" || dataManager.logindata.password == "")
         {
-            showPopUp = true;
-            OnGUI();
+            alert.Show("Invalid input");
         }
         else
         {
-            showSuccessPopUp = true;
             StartCoroutine(dataManager.login());
-            OnGUI();
+            alert.Show("Login successfully!");
             userName.text = "";
             email.text = "";
         }
     }
 
-    public void OnGUI()
+    /*public void OnGUI()
     {
         if (showPopUp)
         {
@@ -143,9 +153,9 @@ public class UI : MonoBehaviour
                    , 500, 300), SucessEnterShowGUI, "Success");
 
         }
-    }
+    }*/
 
-    public void ShowGUI(int windowID)
+   /* public void ShowGUI(int windowID)
     {
         // You may put a label to show a message to the player
 
@@ -164,9 +174,9 @@ public class UI : MonoBehaviour
             // you may put other code to run according to your game too
         }
 
-    }
+    }*/
 
-    public void successEnter()
+  /*  public void successEnter()
     {
         if (showSuccessPopUp)
         {
@@ -191,5 +201,5 @@ public class UI : MonoBehaviour
             // you may put other code to run according to your game too
         }
 
-    }
+    }*/
 }

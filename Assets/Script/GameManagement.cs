@@ -61,7 +61,7 @@ public class GameManagement : MonoBehaviour
     void Awake()
     {
         events.EXP = 0;
-        events.CurrentFinalScore = 0;
+        
         events.Play_HP = 100;
         events.npc_HP = 100;
         events.status = "pending";
@@ -135,7 +135,7 @@ public class GameManagement : MonoBehaviour
             }
             else
             {
-                score = events.NPC_DP;
+                score = 10+events.level*5;
             }
             events.DisplayResolutionScreen(type, score);
         }
@@ -258,7 +258,7 @@ public class GameManagement : MonoBehaviour
         }
         else
         {
-            events.Play_HP -= events.NPC_DP;
+            events.Play_HP -= 10+events.level*5;
 
         }
         if (events.ScoreUpdated != null)
@@ -338,11 +338,13 @@ public class GameManagement : MonoBehaviour
 
             string characterString = newJson3.ToString();
             Chara = JsonUtility.FromJson<Character>(characterString);
+            events.characterId = Chara.charId;
             Debug.Log("charID: " + Chara.charId);
 
 
             string combatString = "{\"combatID\": " + newJson2.ToString() + "}";
             Combat CID = JsonUtility.FromJson<Combat>(combatString);
+            events.combatID = CID.combatID;
             Debug.Log("combatID: " + CID.combatID);
 
 

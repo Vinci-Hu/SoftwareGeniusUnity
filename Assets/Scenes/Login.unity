@@ -195,11 +195,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   data:
     userName: 
-    email: 
     realName: 
     password: 
-    dropdown: 0
-    answerForSecurity: 
+    email: 
+    accountType: FB
+    isAdmin: 0
+    overallExp: 0
+  logindata:
+    userName: 
+    password: 
+  signupurl: http://localhost:9090/api/player/addUser
+  loginurl: http://localhost:9090/api/player/login
 --- !u!4 &128648269
 Transform:
   m_ObjectHideFlags: 0
@@ -310,7 +316,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 960062340}
-        m_MethodName: changePassword
+        m_MethodName: changeLoginPassword
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1056,15 +1062,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1e32c1b9a957f47800068624f37453, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  userName: {fileID: 1613880915}
+  userName: {fileID: 0}
+  loginUserName: {fileID: 1613880915}
   email: {fileID: 0}
   realName: {fileID: 0}
-  password: {fileID: 168996734}
+  password: {fileID: 0}
+  loginPassword: {fileID: 168996734}
   reEnterPW: {fileID: 0}
-  question: {fileID: 0}
   signupBtn: {fileID: 0}
   loginBtn: {fileID: 1550997832}
-  answerForSecurity: {fileID: 0}
   dataManager: {fileID: 128648268}
 --- !u!4 &960062341
 Transform:
@@ -1624,7 +1630,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 960062340}
-        m_MethodName: changeUserName
+        m_MethodName: changeLoginUserName
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

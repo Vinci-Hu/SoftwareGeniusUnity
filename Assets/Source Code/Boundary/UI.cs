@@ -7,21 +7,25 @@ public class UI : MonoBehaviour
 {
     public InputField userName;
 
+    public InputField loginUserName;
+
     public InputField email;
 
     public InputField realName;
 
     public InputField password;
 
+    public InputField loginPassword;
+
     public InputField reEnterPW;
 
-    public Dropdown question;
+    //public Dropdown question;
 
     public Button signupBtn;
 
     public Button loginBtn;
 
-    public InputField answerForSecurity;
+    //public InputField answerForSecurity;
 
     public DataManager dataManager;
 
@@ -37,11 +41,18 @@ public class UI : MonoBehaviour
         this.userName.characterLimit = 15;
         this.password.characterLimit = 15;
         this.reEnterPW.characterLimit = 15;
+        this.loginPassword.characterLimit = 15;
+        this.loginUserName.characterLimit = 15;
     }
 
     public void changeUserName(string userName)
     {
         dataManager.data.userName = userName;
+    }
+
+    public void changeLoginUserName(string loginUserName)
+    {
+        dataManager.logindata.userName = loginUserName;
     }
 
     public void changeEmail(string email)
@@ -57,6 +68,11 @@ public class UI : MonoBehaviour
     public void changePassword(string pw)
     {
         dataManager.data.password = pw;
+    }
+
+    public void changeLoginPassword(string loginPw)
+    {
+        dataManager.logindata.password = loginPw;
     }
 
     //backend not supported
@@ -75,8 +91,8 @@ public class UI : MonoBehaviour
     public void ClickSignUp()
     {
         // || dataManager.data.dropdown ==0 || dataManager.data.answerForSecurity ==""
-        if (dataManager.data.userName == "" || dataManager.data.email =="" || dataManager.data.realName =="" 
-            || dataManager.data.password == "" || dataManager.data.password !=reEnterPW.text)
+        if (dataManager.data.userName == "" || dataManager.data.email == "" || dataManager.data.realName == ""
+            || dataManager.data.password == "" || dataManager.data.password != reEnterPW.text)
         {
             showPopUp = true;
             OnGUI();
@@ -85,21 +101,20 @@ public class UI : MonoBehaviour
         {
             showSuccessPopUp = true;
             StartCoroutine(dataManager.signUp());
-            //OnGUI();
-            //there is a bug here so I coment the OnGui()
+            OnGUI();
             userName.text = "";
             email.text = "";
             realName.text = "";
             password.text = "";
             reEnterPW.text = "";
-            question.value = 0;
-            answerForSecurity.text = "";
+            //question.value = 0;
+            //answerForSecurity.text = "";
         }
     }
 
     public void ClickLogin()
     {
-        if (dataManager.data.userName == "" || dataManager.data.password == "")
+        if (dataManager.logindata.userName == "" || dataManager.logindata.password == "")
         {
             showPopUp = true;
             OnGUI();
@@ -135,7 +150,7 @@ public class UI : MonoBehaviour
         // You may put a label to show a message to the player
 
         guiStyle.fontSize = 25;
-        GUI.Label(new Rect(65, 70,500, 100), "invalid input, please fill up properly.",guiStyle);
+        GUI.Label(new Rect(65, 70, 500, 100), "invalid input, please fill up properly.", guiStyle);
 
         // You may put a button to close the pop up too
 
@@ -177,14 +192,4 @@ public class UI : MonoBehaviour
         }
 
     }
-
-    /*protected virtual void Awake()
-    {
-        if (GameObject.Find("StaticObjects") == null)
-        {
-            GameObject obj = GameObject.Instantiate(Resources.Load("LoadedPrefabs/StaticObjects") as GameObject);
-            obj.name = "StaticObjects";
-            GameObject.DontDestroyOnLoad(obj);
-        }
-    }*/
 }

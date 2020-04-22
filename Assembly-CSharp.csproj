@@ -121,6 +121,7 @@
     <Compile Include="Assets\Source Code\Others\DataManager.cs" />
     <Compile Include="Assets\Source Code\Others\FacebookLoginAPI.cs" />
     <Compile Include="Assets\Source Code\Others\LoginAPI.cs" />
+    <Compile Include="Assets\Source Code\Others\loginData.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark01.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark01_UGUI.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark02.cs" />

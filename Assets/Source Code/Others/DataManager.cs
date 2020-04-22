@@ -8,6 +8,7 @@ using UnityEngine.Networking;
 public class DataManager : MonoBehaviour
 {
     public Data data;
+    public loginData logindata;
     public string signupurl = "http://localhost:9090/api/player/addUser";
     public string loginurl = "http://localhost:9090/api/player/login";
 
@@ -16,7 +17,7 @@ public class DataManager : MonoBehaviour
     private string loginfile = "loginData.txt";
 
     public IEnumerator signUp()
-    {   
+    {
         string json = JsonUtility.ToJson(this.data);
         UnityWebRequest PostRequest = UnityWebRequest.Post(signupurl, json);
         PostRequest.uploadHandler.contentType = "application/json";
@@ -38,7 +39,7 @@ public class DataManager : MonoBehaviour
     public IEnumerator login()
     {
         //login的data是不是重新定义一个data structure
-        string json = JsonUtility.ToJson(this.data);
+        string json = JsonUtility.ToJson(this.logindata);
         UnityWebRequest PostRequest = UnityWebRequest.Post(loginurl, json);
         PostRequest.uploadHandler.contentType = "application/json";
         PostRequest.uploadHandler = new UploadHandlerRaw(System.Text.Encoding.UTF8.GetBytes(json));
@@ -51,7 +52,7 @@ public class DataManager : MonoBehaviour
         {
             Debug.LogError(PostRequest.error);
             yield break;
-        } 
+        }
         else
         {
             Debug.Log(json);

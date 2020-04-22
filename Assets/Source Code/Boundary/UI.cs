@@ -105,7 +105,7 @@ public class UI : MonoBehaviour
     {
         bool emailformat = validateEmail(dataManager.data.email);
         // || dataManager.data.dropdown ==0 || dataManager.data.answerForSecurity ==""
-        if (dataManager.data.userName == "" || dataManager.data.email == "" ||  emailformat == false || dataManager.data.realName == ""
+        if (dataManager.data.userName == "" || dataManager.data.email == "" ||  emailformat == false|| dataManager.data.realName == ""
             || dataManager.data.password == "" || dataManager.data.password != reEnterPW.text)
         {
             alert.Show("Invalid input");

@@ -117,7 +117,6 @@ public class UIManager : MonoBehaviour
     {
 
         UpdateScoreUI();
-        //UpdateHealthBarUI();
         resStateParaHash = Animator.StringToHash("ScreenState");
     }
 
@@ -322,7 +321,6 @@ public class UIManager : MonoBehaviour
 
     void UpdateScoreUI()
     {
-        uIElements.ScoreText.text = "EXP: " + events.CurrentFinalScore;
         uIElements.Player_HP.text = "HP: " + events.Play_HP;
         uIElements.Npc_HP.text = "HP: " + events.npc_HP;
         uIElements.PlayerHealthBar.value = events.Play_HP;

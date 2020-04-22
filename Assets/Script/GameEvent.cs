@@ -31,7 +31,7 @@ public class GameEvent : ScriptableObject
 
     [HideInInspector]
     public int npc_HP = 100; //血量
-
+    public LevelType levelType;
 
     //新增
     public string stuName = StaticVariable.nameStudent;//player Identifier

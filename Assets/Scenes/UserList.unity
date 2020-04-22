@@ -495,15 +495,6 @@ MonoBehaviour:
   - {fileID: 21300000, guid: f40358c78878f524e9fdb9a3dc1f5b40, type: 3}
   - {fileID: 21300000, guid: 35568915d4896b54f8acb468f10db4f1, type: 3}
   - {fileID: 21300000, guid: 33c9860ee5275374d847d26b9ff6171e, type: 3}
-  usernames:
-  - Ming
-  - Hua
-  - Hai
-  - Yun
-  - Li
-  - Zheng
-  - Mao
-  - Kuang
 --- !u!1 &438840399
 GameObject:
   m_ObjectHideFlags: 0
@@ -1625,8 +1616,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 250, y: -100}
-  m_SizeDelta: {x: 500, y: 200}
+  m_AnchoredPosition: {x: 280, y: -100}
+  m_SizeDelta: {x: 560, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2053291629
 MonoBehaviour:
@@ -1721,6 +1712,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   myAvatar: {fileID: 1923084529}
   myUserName: {fileID: 1241872174}
+  userId: 0
 --- !u!114 &2053291633
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -31,7 +31,7 @@ public class ProfileManager : MonoBehaviour
 
     private void ConstructProfile(JSONNode playerData, JSONNode worldData, JSONNode reportData)
     {
-        string studentId = playerData["id"].ToString();
+        string studentId = playerData["userId"].ToString();
         string username = playerData["username"];
         string realName = playerData["realName"];
 
@@ -331,7 +331,7 @@ public class ProfileManager : MonoBehaviour
         colors.Add(color);
 
 
-        return colors[Int32.Parse(profile.studentId) % 5];
+        return colors[int.Parse(profile.studentId) % 5];
 
     }
 

@@ -9,6 +9,8 @@ public class UserInfoBtn : MonoBehaviour
     private Image myAvatar;
     [SerializeField]
     private Text myUserName;
+
+    public int userId;
     public void SetAvatar(Sprite mySprite)
     {
         myAvatar.sprite = mySprite;
@@ -18,5 +20,9 @@ public class UserInfoBtn : MonoBehaviour
     {
         myUserName.text = username;
 
+    }
+    public void SetId(int id)
+    {
+        userId = id;
     }
 }

@@ -20,6 +20,7 @@ public class LoadSceneMap : MonoBehaviour
     {
         events.landID = LandCtrl.standingOn;
         events.mode = "duel";
+        //LandCtrl.
         SceneManager.LoadScene(13);
     }
     public void EnterBattleScene()

@@ -9,11 +9,11 @@ using UnityEngine.UI;
 
 public class LandCtrl : MonoBehaviour
 {
-    public static int standingOn = 3;//position of charac!!
+    public static int standingOn = 0;//position of charac!!
     public static int worldId;
-    public static string gameMode = "battle";
+    public static int opponentId;
     [SerializeField] GameEvent events = null;//set for "Game{}"
-    
+
     private int explored;//to be deleted
 
     private List<Land> Map;//
@@ -26,7 +26,7 @@ public class LandCtrl : MonoBehaviour
     private Sprite[] iconSprites;
     
     private int worldType = 0;//not synchronized for now
-    private string worldCode;
+    public static string worldCode;
     private int userId = 1;//not scynchronized for now
     private string landListStr;
     private Lands landList;
@@ -45,6 +45,7 @@ public class LandCtrl : MonoBehaviour
     }
     void GenMap()
     {
+        
         foreach (Land newLand in Map)
         {
             GameObject newButton = Instantiate(buttonTemplate) as GameObject;
@@ -113,10 +114,14 @@ public class LandCtrl : MonoBehaviour
         
         Map = new List<Land>();
         Debug.Log("count:"+landList.listOfLands.Count);
+
+        //if events.mode=="battle"/"duel"
+
         foreach (LandInfo landInfo in landList.listOfLands)
         {
             Land newLand = new Land();
             newLand.landNo = landInfo.ind;
+            worldId = landInfo.worldId;
             if (landInfo.ownerId != 0)
             {
                 newLand.iconSprite = iconSprites[0];//which is flower

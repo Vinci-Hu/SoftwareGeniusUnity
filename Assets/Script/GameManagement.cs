@@ -11,11 +11,15 @@ using UnityEngine.Networking;
 public class GameManagement : MonoBehaviour
 {
 
-    public JSONNode newJson;
+    public JSONNode newJson1;
+    public JSONNode newJson2;
+    public JSONNode newJson3;
     public Qqustion QList;
+    //public Combat CID;
+    public Character Chara;
+
     public int QuestionIndex = 0;
     [SerializeField] GameEvent events = null;
-
     [SerializeField] Animator timerAnimtor = null;
     [SerializeField] TextMeshProUGUI timerText = null;
     [SerializeField] Color timerHalfWayOutColor = Color.yellow;
@@ -85,18 +89,7 @@ public class GameManagement : MonoBehaviour
             PickedAnswers.Clear();
             PickedAnswers.Add(newAnswer);
         }
-        /*else/ for multiple question
-        {
-            bool alreadyPicked = PickedAnswers.Exists(x => x == newAnswer);
-            if (alreadyPicked)
-            {
-                PickedAnswers.Remove(newAnswer);
-            }
-            else
-            {
-                PickedAnswers.Add(newAnswer);
-            }
-        }*/
+
     }
 
     void Display()
@@ -147,7 +140,6 @@ public class GameManagement : MonoBehaviour
             events.DisplayResolutionScreen(type, score);
         }
 
-        //AudioManager.Instance.PlaySound((isCorrect) ? "CorrectSFX" : "IncorrectSFX");
 
         if (type != UIManager.ResolutionScreenType.Finish)
         {
@@ -192,7 +184,6 @@ public class GameManagement : MonoBehaviour
             timerText.text = timeLeft.ToString();
 
 
-            //AudioManager.Instance.PlaySound("CountdownSFX");
 
             if (timeLeft < totalTime / 2 && timeLeft > totalTime / 4)
             {
@@ -248,7 +239,7 @@ public class GameManagement : MonoBehaviour
     {
         var randomIndex = GetRandomQuestionIndex();
         currentQuestion = randomIndex;
-        Debug.Log(QList.ListOfQuestions[currentQuestion].answer);
+        Debug.Log("Ans"+ currentQuestion+": " +QList.ListOfQuestions[currentQuestion].answer);
         return QList.ListOfQuestions[currentQuestion];
     }
 
@@ -324,23 +315,39 @@ public class GameManagement : MonoBehaviour
 
             //Debug.Log(userRequest.downloadHandler.text);
             JSONNode StartBattleInfo = JSON.Parse(userRequest.downloadHandler.text);
+
+
+
             if (StartBattleInfo.Tag == JSONNodeType.Object)
             {
                 foreach (KeyValuePair<string, JSONNode> kvp in (JSONObject)StartBattleInfo)
                 {
-                    newJson = kvp.Value;
+                    if (kvp.Key == "questions")
+                        newJson1 = kvp.Value;
+                    if (kvp.Key == "combatId")
+                        newJson2 = kvp.Value;
+                    if (kvp.Key == "character")
+                        newJson3 = kvp.Value;
 
                 }
             }
-            //Debug.Log(newJson.Count);
 
-            string StartBattleString = "{\"ListOfQuestions\": " + newJson.ToString() + "}";
+
+            string StartBattleString = "{\"ListOfQuestions\": " + newJson1.ToString() + "}";
             QList = JsonUtility.FromJson<Qqustion>(StartBattleString);
-            Debug.Log(QList.ListOfQuestions.Count + "load successfully");
+
+            string characterString = newJson3.ToString();
+            Chara = JsonUtility.FromJson<Character>(characterString);
+            Debug.Log("charID: " + Chara.charId);
+
+
+            string combatString = "{\"combatID\": " + newJson2.ToString() + "}";
+            Combat CID = JsonUtility.FromJson<Combat>(combatString);
+            Debug.Log("combatID: " + CID.combatID);
+
+
 
             timerDefaultColor = timerText.color;
-            //LoadQuestions();
-
             timerStateParaHash = Animator.StringToHash("TimerState");
 
             var seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);

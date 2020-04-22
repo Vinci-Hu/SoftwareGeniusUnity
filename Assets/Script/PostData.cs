@@ -2,7 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct Character
+public class DataLoaded
+{
+    public Character character;
+    public Combat combatID;
+    public List<QuestionLoad> questions;
+
+}
+[System.Serializable]
+public class Combat
+{
+    public int combatID;
+}
+[System.Serializable]
+public class Character
 {
     public int charId;
     public int userId;
@@ -13,16 +26,7 @@ public struct Character
     public int correctQuesNo;
     public int totalQuesNo;
 }
-
-
-public class DataLoaded
-{
-    public Character character;
-    public int combatId;
-    public List<QuestionLoad> questions;
-
-}
-
+[System.Serializable]
 public class Qqustion
 {
     public List<QuestionLoad> ListOfQuestions;

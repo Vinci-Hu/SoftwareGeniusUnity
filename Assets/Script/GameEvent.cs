@@ -45,14 +45,14 @@ public class GameEvent : ScriptableObject
     public int npcId;
     public string status = "pending";
 
-
+    public int combatID;
     //由playerID和npcID获得
     public int Player_DP = 20;
     public int NPC_DP = 10;
 
 
     //save
-
+    public int characterId;
     public int numOfQnsAnswered = 0;
     public List<int> idOfAnsweredQns;
     public List<int> idOfCorrectlyAnsweredQns;

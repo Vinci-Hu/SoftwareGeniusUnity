@@ -213,23 +213,52 @@ public class UIManager : MonoBehaviour
     {
 
         PostAfterData AfterData = new PostAfterData();
-        /*AfterData.characterId = events.playerId;
+        AfterData.characterId = events.characterId;
         AfterData.status = events.status;
-        AfterData.numOfQnsAnswered = events.numOfQnsAnswered;
-        AfterData.idOfAnsweredQns = events.idOfAnsweredQns;
-        AfterData.idOfCorrectlyAnsweredQns = events.idOfCorrectlyAnsweredQns;*/
 
-        AfterData.characterId = 1;
+        List<int> AQ_list = events.idOfAnsweredQns;
+        string AQ = "";
+        for (int j = 0; j < AQ_list.Count - 1; j++)
+        {
+            AQ += AQ_list[j].ToString() + ",";
+        }
+        AQ += AQ_list[AQ_list.Count - 1].ToString();
+        AQ = "[" + AQ + "]";
+
+        List<int> CA_list = events.idOfCorrectlyAnsweredQns;
+        string CA = "";
+        if (CA_list.Count > 0)
+        {
+            for (int j = 0; j < CA_list.Count - 1; j++)
+            {
+                CA += CA_list[j].ToString() + ",";
+            }
+            CA += CA_list[CA_list.Count - 1].ToString();
+            CA = "[" + CA + "]";
+        }
+
+        AfterData.numOfQnsAnswered = events.numOfQnsAnswered;
+        AfterData.idOfAnsweredQns = AQ;
+        AfterData.idOfCorrectlyAnsweredQns = CA;
+        
+
+        //test
+        /*AfterData.characterId = 1;
         AfterData.status = "failed";
         AfterData.numOfQnsAnswered = 5;
         AfterData.idOfAnsweredQns = "[3,4,1,19,20]";
         AfterData.idOfCorrectlyAnsweredQns = "[3,4,1,19]";
         ;
 
-        string json = JsonUtility.ToJson(AfterData);
+        ";*/
 
+        string json = JsonUtility.ToJson(AfterData);
+        Debug.Log(json);
 
         string url = "localhost:9090/api/combat/1/end";
+       //string url = "localhost:9090/api/combat/"+events.combatID+"/end";
+
+
 
         UnityWebRequest userRequest = UnityWebRequest.Post(url, json);
         userRequest.uploadHandler.contentType = "application/json";
@@ -249,13 +278,13 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            //Debug.Log("Success");
+            Debug.Log(userRequest.downloadHandler.text);
             JSONNode StartBattleInfo = JSON.Parse(userRequest.downloadHandler.text);
 
             string StartBattleString = StartBattleInfo.ToString();
             GetExp e = JsonUtility.FromJson<GetExp>(StartBattleString);
-            //uIElements.ResolutionScoreText.text = "Totol EXP: " + e.addedExp;
-            StartCoroutine(CalculateScore(e.addedExp));
+            uIElements.ResolutionScoreText.text = "Totol EXP: " + e.addedExp;
+            //StartCoroutine(CalculateScore(e.addedExp));
         }
 
     }

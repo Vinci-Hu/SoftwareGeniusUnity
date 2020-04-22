@@ -9,11 +9,12 @@ public class DataManager : MonoBehaviour
 {
     public Data data;
     public loginData logindata;
+    public UI ui;
+
     public string signupurl = "http://localhost:9090/api/player/addUser";
     public string loginurl = "http://localhost:9090/api/player/login";
 
     private string signupfile = "signupData.txt";
-
     private string loginfile = "loginData.txt";
 
     public IEnumerator signUp()
@@ -30,6 +31,10 @@ public class DataManager : MonoBehaviour
         if (PostRequest.isNetworkError || PostRequest.isHttpError)
         {
             Debug.LogError(PostRequest.error);
+            if(PostRequest.responseCode == 404)
+            {
+                ui.alert.Show("Invalid email address");
+            }
             yield break;
         }
         Debug.Log(json);
@@ -38,7 +43,6 @@ public class DataManager : MonoBehaviour
 
     public IEnumerator login()
     {
-        //login的data是不是重新定义一个data structure
         string json = JsonUtility.ToJson(this.logindata);
         UnityWebRequest PostRequest = UnityWebRequest.Post(loginurl, json);
         PostRequest.uploadHandler.contentType = "application/json";
@@ -51,6 +55,14 @@ public class DataManager : MonoBehaviour
         if (PostRequest.isNetworkError || PostRequest.isHttpError)
         {
             Debug.LogError(PostRequest.error);
+            if(PostRequest.responseCode == 422)
+            {
+                ui.alert.Show("Validation failed");
+            }
+            if (PostRequest.responseCode == 404)
+            {
+                ui.alert.Show("User not found");
+            }
             yield break;
         }
         else
